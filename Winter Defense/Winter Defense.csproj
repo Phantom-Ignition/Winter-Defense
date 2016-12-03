@@ -40,12 +40,14 @@
   <ItemGroup>
     <Compile Include="Characters\CharacterBase.cs" />
     <Compile Include="Characters\Player.cs" />
+    <Compile Include="Extensions\MathUtils.cs" />
     <Compile Include="Extensions\RectangleExtensions.cs" />
     <Compile Include="GameMain.cs" />
     <Compile Include="Managers\ImageManager.cs" />
     <Compile Include="Managers\InputManager.cs" />
     <Compile Include="Managers\MapManager.cs" />
     <Compile Include="Managers\SceneManager.cs" />
+    <Compile Include="Objects\GameCrystal.cs" />
     <Compile Include="Objects\GameProjectile.cs" />
     <Compile Include="Objects\PhysicalObject.cs" />
     <Compile Include="Program.cs" />

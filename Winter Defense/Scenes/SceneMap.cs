@@ -37,6 +37,11 @@ namespace Winter_Defense.Scenes
         private List<GameProjectile> _projectiles;
 
         //--------------------------------------------------
+        // Crystal
+
+        private GameCrystal _crystal;
+
+        //--------------------------------------------------
         // Random
 
         private Random _rand;
@@ -53,6 +58,8 @@ namespace Winter_Defense.Scenes
             base.LoadContent();
 
             var viewportSize = SceneManager.Instance.VirtualSize;
+
+            // Camera init
             _camera = new Camera2D(SceneManager.Instance.ViewportAdapter);
 
             // Player init
@@ -72,6 +79,11 @@ namespace Winter_Defense.Scenes
 
             // Load the map
             LoadMap(MapManager.FirstMap);
+
+            // Crystal init
+            var mapSize = new Vector2(MapManager.Instance.MapWidth, MapManager.Instance.MapHeight);
+            var crystalPosition = new Vector2(mapSize.X / 2 - 48, 96);
+            _crystal = new GameCrystal(crystalPosition, ImageManager.loadCharacter("Crystal"));
         }
 
         private void LoadMap(int mapId)
@@ -103,6 +115,7 @@ namespace Winter_Defense.Scenes
 
         public override void Update(GameTime gameTime)
         {
+            _crystal.Update(gameTime);
             _player.Update(gameTime);
             UpdateCamera();
             base.Update(gameTime);
@@ -144,6 +157,9 @@ namespace Winter_Defense.Scenes
             MapManager.Instance.Draw(_camera, spriteBatch);
 
             spriteBatch.Begin(transformMatrix: _camera.GetViewMatrix(), samplerState: SamplerState.PointClamp);
+
+            // Draw the crystal
+            _crystal.Draw(spriteBatch);
 
             // Draw the player
             _player.DrawCharacter(spriteBatch);

@@ -287,10 +287,6 @@ namespace Winter_Defense.Characters
             {
                 _bottomSprite.SetFrameList("recharging");
             }
-            else if (_isAttacking)
-            {
-                _bottomSprite.SetFrameList(_attackFrameList[_attackType]);
-            }
             else if (_groundImpact && !_recharging)
             {
                 _bottomSprite.SetFrameList("jumping_impact");
@@ -298,6 +294,10 @@ namespace Winter_Defense.Characters
             else if (walking)
             {
                 _bottomSprite.SetFrameList("walking");
+            }
+            else if (_isAttacking)
+            {
+                _bottomSprite.SetFrameList(_attackFrameList[_attackType]);
             }
             else
             {
@@ -351,6 +351,7 @@ namespace Winter_Defense.Characters
                 position += new Vector2(25, 12);
             }
 
+            _knockbackAcceleration = 3800.0f * -Math.Sign(dx);
             ((SceneMap)SceneManager.Instance.GetCurrentScene()).CreateProjectile("snowball", position, dx, 0, damage, ProjectileSubject.FromPlayer);
         }
 

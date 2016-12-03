@@ -19,8 +19,7 @@ namespace Winter_Defense.Managers
         public Vector2 VirtualSize = new Vector2(427, 240);
         public GraphicsDevice GraphicsDevice;
         public SpriteBatch SpriteBatch;
-        public ViewportAdapter ViewportAdapter { get { return GameMain.ViewportAdapter; } }
-        public GameWindow GameMap { get { return GameMain.GameWindow; } }
+        public ViewportAdapter ViewportAdapter => GameMain.ViewportAdapter;
         public ContentManager Content { private set; get; }
 
         public bool RequestingExit = false;
@@ -49,7 +48,7 @@ namespace Winter_Defense.Managers
         private SceneBase _currentScene, _newScene;
         private Sprite _transitionImage;
         private bool _isTransitioning = false;
-        public bool IsTransitioning { get { return _isTransitioning; } }
+        public bool IsTransitioning => _isTransitioning;
         private bool _beginTransitionFade = false;
 
         //--------------------------------------------------

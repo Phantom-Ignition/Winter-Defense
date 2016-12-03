@@ -13,7 +13,7 @@ namespace Winter_Defense
         [STAThread]
         static void Main()
         {
-            using (var game = new Game1())
+            using (var game = new GameMain())
                 game.Run();
         }
     }

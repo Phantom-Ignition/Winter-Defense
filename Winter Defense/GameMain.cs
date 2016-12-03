@@ -1,21 +1,42 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.ViewportAdapters;
+using Winter_Defense.Managers;
 
 namespace Winter_Defense
 {
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
-    public class Game1 : Game
+    public class GameMain : Game
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        public Game1()
+        //--------------------------------------------------
+        // Viewport adapter
+
+        public static BoxingViewportAdapter ViewportAdapter;
+        public static GameWindow GameWindow;
+
+        //----------------------//------------------------//
+
+        public GameMain()
         {
+            var windowSize = SceneManager.Instance.WindowSize;
             graphics = new GraphicsDeviceManager(this);
+            graphics.PreferredBackBufferWidth = (int)windowSize.X;
+            graphics.PreferredBackBufferHeight = (int)windowSize.Y;
+            graphics.ApplyChanges();
+
             Content.RootDirectory = "Content";
+
+            DisplayMode displayMode = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+            this.Window.Position = new Point((displayMode.Width - (int)windowSize.X) / 2, (displayMode.Height - (int)windowSize.Y) / 2);
+            this.Window.AllowUserResizing = true;
+
+            GameWindow = this.Window;
         }
 
         /// <summary>
@@ -26,8 +47,8 @@ namespace Winter_Defense
         /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
+            var virtualSize = SceneManager.Instance.VirtualSize;
+            ViewportAdapter = new BoxingViewportAdapter(this.Window, GraphicsDevice, (int)virtualSize.X, (int)virtualSize.Y);
             base.Initialize();
         }
 
@@ -37,10 +58,10 @@ namespace Winter_Defense
         /// </summary>
         protected override void LoadContent()
         {
-            // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            // TODO: use this.Content to load your game content here
+            SceneManager.Instance.GraphicsDevice = GraphicsDevice;
+            SceneManager.Instance.SpriteBatch = spriteBatch;
+            SceneManager.Instance.LoadContent(Content);
         }
 
         /// <summary>
@@ -49,7 +70,7 @@ namespace Winter_Defense
         /// </summary>
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
+            SceneManager.Instance.UnloadContent();
         }
 
         /// <summary>
@@ -59,10 +80,11 @@ namespace Winter_Defense
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)
+                || SceneManager.Instance.RequestingExit)
                 Exit();
 
-            // TODO: Add your update logic here
+            SceneManager.Instance.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -73,10 +95,9 @@ namespace Winter_Defense
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            // TODO: Add your drawing code here
-
+            SceneManager.Instance.GetCurrentScene().UpdateFpsCounter(gameTime);
+            GraphicsDevice.Clear(Color.Black);
+            SceneManager.Instance.Draw(spriteBatch);
             base.Draw(gameTime);
         }
     }

@@ -8,6 +8,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Winter_Defense.Scenes;
 using Winter_Defense.Objects;
+using MonoGame.Extended.Particles;
+using MonoGame.Extended.TextureAtlases;
+using MonoGame.Extended.Particles.Profiles;
 
 namespace Winter_Defense.Characters
 {
@@ -32,6 +35,12 @@ namespace Winter_Defense.Characters
         // Recharging
 
         private bool _recharging;
+
+        //--------------------------------------------------
+        // Shot Particle effect
+
+        private ParticleEffect _shotParticleEffect;
+        public ParticleEffect ShotParticleEffect => _shotParticleEffect;
 
         //--------------------------------------------------
         // Keys locked (no movement)
@@ -71,7 +80,7 @@ namespace Winter_Defense.Characters
             });
             
             // Jumping apex
-            CharacterSprite.CreateFrameList("jumping_apex", 0, false);
+            CharacterSprite.CreateFrameList("jumping_apex", 120, false);
             CharacterSprite.AddCollider("jumping_apex", new Rectangle(6, 2, 16, 30));
             CharacterSprite.AddFrames("jumping_apex", new List<Rectangle>()
             {
@@ -80,7 +89,7 @@ namespace Winter_Defense.Characters
             });
 
             // Jumping falling
-            CharacterSprite.CreateFrameList("jumping_impact", 40, false);
+            CharacterSprite.CreateFrameList("jumping_impact", 30, false);
             CharacterSprite.AddCollider("jumping_impact", new Rectangle(6, 2, 16, 30));
             CharacterSprite.AddFrames("jumping_impact", new List<Rectangle>()
             {
@@ -122,6 +131,11 @@ namespace Winter_Defense.Characters
             };
 
             AttackCooldown = 300f;
+
+            // Particles init
+            var particleTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
+            particleTexture.SetData(new[] { Color.White });
+            ParticlesInit(new TextureRegion2D(particleTexture));
         }
 
         private void SetupBottomSprite(Texture2D texture)
@@ -152,25 +166,25 @@ namespace Winter_Defense.Characters
             _bottomSprite.AddFrames("jumping", new List<Rectangle>()
             {
                 new Rectangle(0, 288, 32, 32),
-                new Rectangle(32, 288, 32, 32),
+                new Rectangle(32, 288, 32, 32)
             });
 
             // Jumping apex
-            _bottomSprite.CreateFrameList("jumping_apex", 0, false);
+            _bottomSprite.CreateFrameList("jumping_apex", 120, false);
             _bottomSprite.AddCollider("jumping_apex", new Rectangle(6, 2, 16, 30));
             _bottomSprite.AddFrames("jumping_apex", new List<Rectangle>()
             {
-                new Rectangle(64, 289, 32, 32),
-                new Rectangle(96, 289, 32, 32),
-            });
+                new Rectangle(64, 288, 32, 32),
+                new Rectangle(96, 289, 32, 31)
+            }, new int[] { 0, 0 }, new int[] { 0, 1 });
 
             // Jumping falling
-            _bottomSprite.CreateFrameList("jumping_impact", 40, false);
+            _bottomSprite.CreateFrameList("jumping_impact", 30, false);
             _bottomSprite.AddCollider("jumping_impact", new Rectangle(6, 2, 16, 30));
             _bottomSprite.AddFrames("jumping_impact", new List<Rectangle>()
             {
                 new Rectangle(128, 288, 32, 32),
-                new Rectangle(160, 288, 32, 32),
+                new Rectangle(160, 288, 32, 32)
             });
 
             // Recharging
@@ -196,6 +210,20 @@ namespace Winter_Defense.Characters
             }, new int[] { 0, 0, 0, 0 }, new int[] { 1, 1, 1, 1 });
         }
 
+        private void ParticlesInit(TextureRegion2D textureRegion)
+        {
+            _shotParticleEffect = new ParticleEffect
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 500, TimeSpan.FromSeconds(2.5), Profile.Ring(150f, Profile.CircleRadiation.In))
+                    {
+
+                    }
+                }
+            };
+        }
+
         public void UpdateWithKeyLock(GameTime gameTime, bool keyLock)
         {
             _keysLocked = keyLock;
@@ -206,10 +234,12 @@ namespace Winter_Defense.Characters
 
         public override void Update(GameTime gameTime)
         {
-            bool isOnGroundBefore = _isOnGround;
+            var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            var isOnGroundBefore = _isOnGround;
             CheckKeys(gameTime);
             base.Update(gameTime);
             UpdateSprites(gameTime, isOnGroundBefore);
+            _shotParticleEffect.Update(deltaTime);
         }
 
         private void UpdateSprites(GameTime gameTime, bool isOnGroundBefore)
@@ -253,7 +283,7 @@ namespace Winter_Defense.Characters
             }
             else if (!_isOnGround)
             {
-                if (Math.Abs(_velocity.Y) < 100.0f)
+                if (Math.Abs(_velocity.Y) < 100.0f || _velocity.Y > 0)
                 {
                     CharacterSprite.SetFrameList("jumping_apex");
                 }
@@ -328,8 +358,11 @@ namespace Winter_Defense.Characters
             if (!_isAttacking && InputManager.Instace.KeyDown(Keys.Z))
                 RequestAttack(ShotAttack);
 
+            // Jump
             _isJumping = InputManager.Instace.KeyDown(Keys.C);
-            _recharging = InputManager.Instace.KeyDown(Keys.R);
+
+            // Recharging
+            _recharging = _isOnGround && InputManager.Instace.KeyDown(Keys.X);
         }
 
         public override void DoAttack()
@@ -360,6 +393,7 @@ namespace Winter_Defense.Characters
         {
             _bottomSprite.Draw(spriteBatch, new Vector2(BoundingRectangle.X, BoundingRectangle.Y));
             base.DrawCharacter(spriteBatch);
+            spriteBatch.Draw(_shotParticleEffect);
         }
         #endregion
     }

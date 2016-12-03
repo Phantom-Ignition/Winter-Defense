@@ -8,6 +8,7 @@ using MonoGame.Extended;
 using MonoGame.Extended.Maps.Tiled;
 using Winter_Defense.Characters;
 using Winter_Defense.Extensions;
+using MonoGame.Extended.Maps.Renderers;
 
 namespace Winter_Defense.Managers
 {
@@ -54,6 +55,7 @@ namespace Winter_Defense.Managers
         // Tiles stuff
 
         public TiledMap _tiledMap;
+        private IMapRenderer _mapRenderer;
         public Vector2 TileSize;
 
         public enum TileCollision
@@ -76,6 +78,8 @@ namespace Winter_Defense.Managers
         public void LoadMap(ContentManager contentManager, int mapId)
         {
             _tiledMap = contentManager.Load<TiledMap>(String.Format("maps/map{0}", mapId));
+            _mapRenderer = new FullMapRenderer(SceneManager.Instance.GraphicsDevice, new MapRendererConfig { DrawObjectLayers = false });
+            _mapRenderer.SwapMap(_tiledMap);
             var blockedLayer = (TiledTileLayer)_tiledMap.GetLayer("Block");
             if (blockedLayer == null) return;
             foreach (var tile in blockedLayer.Tiles)
@@ -112,7 +116,7 @@ namespace Winter_Defense.Managers
             return _tiledMap.GetLayer<TiledTileLayer>("Platform");
         }
 
-        public TiledObjectGroup GetObjectGroup(string name)
+        public TiledObjectLayer GetObjectGroup(string name)
         {
             return _tiledMap.GetObjectGroup(name);
         }
@@ -170,8 +174,8 @@ namespace Winter_Defense.Managers
 
         public void Draw(Camera2D camera, SpriteBatch spriteBatch)
         {
+            _mapRenderer.Draw(camera.GetViewMatrix());
             spriteBatch.Begin(transformMatrix: camera.GetViewMatrix(), samplerState: SamplerState.PointClamp);
-            _tiledMap.Draw(spriteBatch, camera);
             if (SceneManager.Instance.DebugMode)
                 DrawTileColliders(spriteBatch);
             spriteBatch.End();

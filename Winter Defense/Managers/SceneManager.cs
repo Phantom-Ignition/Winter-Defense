@@ -61,7 +61,7 @@ namespace Winter_Defense.Managers
         //--------------------------------------------------
         // Debug mode
 
-        public bool DebugMode { get; set; } = false;
+        public bool DebugMode { get; set; } = true;
 
         //----------------------//------------------------//
 

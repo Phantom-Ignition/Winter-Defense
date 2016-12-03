@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Sprites;
 using MonoGame.Extended;
 using MonoGame.Extended.ViewportAdapters;
+using MonoGame.Extended.Particles;
 using Winter_Defense.Characters;
 using System.Collections.Generic;
 using Winter_Defense.Objects;
@@ -77,9 +78,9 @@ namespace Winter_Defense.Scenes
             };
             _projectiles = new List<GameProjectile>();
             _projectilesColliderTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
-            _projectilesColliderTexture.SetData<Color>(new Color[] { Color.Orange });
+            _projectilesColliderTexture.SetData(new Color[] { Color.Orange });
 
-            // Backgroudn init
+            // Background init
             _backgroundTexture = ImageManager.loadScene("sceneMap", "Background");
 
             // Random init
@@ -100,11 +101,6 @@ namespace Winter_Defense.Scenes
             InitMapObjects();
         }
 
-        private void MapLoadedFromTransition(int mapId)
-        {
-            InitMapObjects();
-        }
-
         private void InitMapObjects()
         {
             SpawnPlayer();
@@ -112,7 +108,8 @@ namespace Winter_Defense.Scenes
 
         private void SpawnPlayer()
         {
-            var spawnPoint = new Vector2(MapManager.Instance.GetPlayerSpawn().X, MapManager.Instance.GetPlayerSpawn().Y);
+            var spawnObject = MapManager.Instance.GetPlayerSpawn();
+            var spawnPoint = new Vector2(spawnObject.Position.X, spawnObject.Position.Y);
             _player.Position = new Vector2(spawnPoint.X, spawnPoint.Y - _player.CharacterSprite.GetColliderHeight());
         }
 
@@ -139,7 +136,7 @@ namespace Winter_Defense.Scenes
             }
 
             DebugValues["Delta Time"] = gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
-            DebugValues["Player Y"] = _player.Velocity.Y.ToString();
+            DebugValues["Player Frame List"] = _player.CharacterSprite.CurrentFrameList.ToString();
         }
 
         private void UpdateCamera()

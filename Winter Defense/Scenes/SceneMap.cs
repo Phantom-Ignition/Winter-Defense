@@ -3,12 +3,12 @@
 using Winter_Defense.Managers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Sprites;
 using MonoGame.Extended;
 using MonoGame.Extended.ViewportAdapters;
 using Winter_Defense.Characters;
-using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Media;
-using Microsoft.Xna.Framework.Audio;
+using System.Collections.Generic;
+using Winter_Defense.Objects;
 
 namespace Winter_Defense.Scenes
 {
@@ -28,6 +28,13 @@ namespace Winter_Defense.Scenes
         private Player _player;
 
         public Player Player { get { return _player; } }
+
+        //--------------------------------------------------
+        // Projectiles
+
+        private Dictionary<string, Texture2D> _projectilesTextures;
+        private Texture2D _projectilesColliderTexture;
+        private List<GameProjectile> _projectiles;
 
         //--------------------------------------------------
         // Random
@@ -50,6 +57,15 @@ namespace Winter_Defense.Scenes
 
             // Player init
             _player = new Player(ImageManager.loadCharacter("Player"));
+
+            // Projectiles init
+            _projectilesTextures = new Dictionary<string, Texture2D>()
+            {
+                {"snowball", ImageManager.loadProjectile("Snowball")},
+            };
+            _projectiles = new List<GameProjectile>();
+            _projectilesColliderTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
+            _projectilesColliderTexture.SetData<Color>(new Color[] { Color.Orange });
 
             // Random init
             _rand = new Random();
@@ -80,11 +96,26 @@ namespace Winter_Defense.Scenes
             _player.Position = new Vector2(spawnPoint.X, spawnPoint.Y - _player.CharacterSprite.GetColliderHeight());
         }
 
+        public void CreateProjectile(string name, Vector2 position, int dx, int dy, int damage, ProjectileSubject subject)
+        {
+            _projectiles.Add(new GameProjectile(_projectilesTextures[name], position, dx, dy, damage, subject));
+        }
+
         public override void Update(GameTime gameTime)
         {
             _player.Update(gameTime);
             UpdateCamera();
             base.Update(gameTime);
+
+            for (var i = 0; i < _projectiles.Count; i++)
+            {
+                _projectiles[i].Update(gameTime);
+                if (_projectiles[i].Subject == ProjectileSubject.FromEnemy && _projectiles[i].BoundingBox.Intersects(_player.BoundingRectangle))
+                    _player.ReceiveAttack(_projectiles[i].Damage, _projectiles[i].LastPosition);
+
+                if (_projectiles[i].RequestErase)
+                    _projectiles.Remove(_projectiles[i]);
+            }
 
             DebugValues["Delta Time"] = gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
             DebugValues["Player Y"] = _player.Velocity.Y.ToString();
@@ -117,6 +148,13 @@ namespace Winter_Defense.Scenes
             // Draw the player
             _player.DrawCharacter(spriteBatch);
             if (debugMode) _player.DrawColliderBox(spriteBatch);
+
+            // Draw the projectiles
+            foreach (var projectile in _projectiles)
+            {
+                spriteBatch.Draw(projectile.Sprite);
+                if (debugMode) spriteBatch.Draw(_projectilesColliderTexture, projectile.BoundingBox, Color.White * 0.5f);
+            }
 
             spriteBatch.End();
         }

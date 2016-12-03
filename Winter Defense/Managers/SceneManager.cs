@@ -15,7 +15,7 @@ namespace Winter_Defense.Managers
         //--------------------------------------------------
         // Public variables
 
-        public Vector2 WindowSize = new Vector2(640, 360);
+        public Vector2 WindowSize = new Vector2(852, 480);
         public Vector2 VirtualSize = new Vector2(427, 240);
         public GraphicsDevice GraphicsDevice;
         public SpriteBatch SpriteBatch;

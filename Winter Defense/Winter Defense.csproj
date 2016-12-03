@@ -46,6 +46,7 @@
     <Compile Include="Managers\InputManager.cs" />
     <Compile Include="Managers\MapManager.cs" />
     <Compile Include="Managers\SceneManager.cs" />
+    <Compile Include="Objects\GameProjectile.cs" />
     <Compile Include="Objects\PhysicalObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

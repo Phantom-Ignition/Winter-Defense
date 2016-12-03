@@ -26,6 +26,11 @@ namespace Winter_Defense.Managers
             return loadBitmap("imgs/characters/" + filename);
         }
 
+        public static Texture2D loadProjectile(string filename)
+        {
+            return loadBitmap("imgs/projectiles/" + filename);
+        }
+
         public static Texture2D loadScene(string scene, string filename)
         {
             return loadBitmap(String.Format("imgs/scenes/{0}/{1}", scene, filename));

@@ -6,6 +6,8 @@ using Winter_Defense.Sprites;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Winter_Defense.Scenes;
+using Winter_Defense.Objects;
 
 namespace Winter_Defense.Characters
 {
@@ -14,8 +16,7 @@ namespace Winter_Defense.Characters
         //--------------------------------------------------
         // Attacks constants
 
-        private const int NormalAttack = 0;
-        private const int AerialAttack = 1;
+        private const int ShotAttack = 0;
 
         //--------------------------------------------------
         // Bottom sprite
@@ -43,7 +44,7 @@ namespace Winter_Defense.Characters
         {
             // Stand
             CharacterSprite.CreateFrameList("stand", 120);
-            CharacterSprite.AddCollider("stand", new Rectangle(0, 0, 32, 32));
+            CharacterSprite.AddCollider("stand", new Rectangle(6, 2, 16, 30));
             CharacterSprite.AddFrames("stand", new List<Rectangle>()
             {
                 new Rectangle(0, 0, 32, 32)
@@ -51,45 +52,45 @@ namespace Winter_Defense.Characters
 
             // Walking
             CharacterSprite.CreateFrameList("walking", 120);
-            CharacterSprite.AddCollider("walking", new Rectangle(0, 0, 32, 32));
+            CharacterSprite.AddCollider("walking", new Rectangle(6, 2, 16, 30));
             CharacterSprite.AddFrames("walking", new List<Rectangle>()
             {
                 new Rectangle(32, 0, 32, 32),
                 new Rectangle(64, 0, 32, 32),
                 new Rectangle(96, 0, 32, 32),
-                new Rectangle(128, 0, 32, 32),
+                new Rectangle(128, 0, 32, 32)
             });
 
             // Jumping up
             CharacterSprite.CreateFrameList("jumping", 60, false);
-            CharacterSprite.AddCollider("jumping", new Rectangle(0, 0, 32, 32));
+            CharacterSprite.AddCollider("jumping", new Rectangle(6, 2, 16, 30));
             CharacterSprite.AddFrames("jumping", new List<Rectangle>()
             {
                 new Rectangle(0, 128, 32, 32),
-                new Rectangle(32, 128, 32, 32),
+                new Rectangle(32, 128, 32, 32)
             });
             
             // Jumping apex
             CharacterSprite.CreateFrameList("jumping_apex", 0, false);
-            CharacterSprite.AddCollider("jumping_apex", new Rectangle(0, 0, 32, 32));
+            CharacterSprite.AddCollider("jumping_apex", new Rectangle(6, 2, 16, 30));
             CharacterSprite.AddFrames("jumping_apex", new List<Rectangle>()
             {
                 new Rectangle(64, 128, 32, 32),
-                new Rectangle(96, 128, 32, 32),
+                new Rectangle(96, 128, 32, 32)
             });
 
             // Jumping falling
             CharacterSprite.CreateFrameList("jumping_impact", 40, false);
-            CharacterSprite.AddCollider("jumping_impact", new Rectangle(0, 0, 32, 32));
+            CharacterSprite.AddCollider("jumping_impact", new Rectangle(6, 2, 16, 30));
             CharacterSprite.AddFrames("jumping_impact", new List<Rectangle>()
             {
                 new Rectangle(128, 128, 32, 32),
-                new Rectangle(160, 128, 32, 32),
+                new Rectangle(160, 128, 32, 32)
             });
 
             // Recharging
             CharacterSprite.CreateFrameList("recharging", 120);
-            CharacterSprite.AddCollider("recharging", new Rectangle(0, 0, 32, 32));
+            CharacterSprite.AddCollider("recharging", new Rectangle(6, 2, 16, 30));
             CharacterSprite.AddFrames("recharging", new List<Rectangle>()
             {
                 new Rectangle(0, 64, 64, 32),
@@ -98,11 +99,29 @@ namespace Winter_Defense.Characters
                 new Rectangle(160, 64, 32, 32)
             }, new int[] { 0, 0, -32, 0 }, new int[] { 0, 0, 0, 0 });
 
+            // Shot
+            CharacterSprite.CreateFrameList("attack_shot", 80, false);
+            CharacterSprite.AddCollider("attack_shot", new Rectangle(6, 2, 16, 30));
+            CharacterSprite.AddFramesToAttack("attack_shot", 0);
+            CharacterSprite.AddFrames("attack_shot", new List<Rectangle>()
+            {
+                new Rectangle(0, 32, 64, 32),
+                new Rectangle(64, 32, 64, 32),
+                new Rectangle(128, 32, 32, 32),
+                new Rectangle(160, 33, 32, 31)
+            }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 1 });
+
             SetupBottomSprite(texture);
 
             Position = new Vector2(32, 160);
 
-            _keysLocked = false;
+            // Attacks setup
+            _attackFrameList = new string[]
+            {
+                "attack_shot"
+            };
+
+            AttackCooldown = 300f;
         }
 
         private void SetupBottomSprite(Texture2D texture)
@@ -110,7 +129,7 @@ namespace Winter_Defense.Characters
             // Stand
             _bottomSprite = new CharacterSprite(texture);
             _bottomSprite.CreateFrameList("stand", 120);
-            _bottomSprite.AddCollider("stand", new Rectangle(0, 0, 32, 32));
+            _bottomSprite.AddCollider("stand", new Rectangle(6, 2, 16, 30));
             _bottomSprite.AddFrames("stand", new List<Rectangle>()
             {
                 new Rectangle(160, 0, 32, 32)
@@ -118,7 +137,7 @@ namespace Winter_Defense.Characters
 
             // Walking
             _bottomSprite.CreateFrameList("walking", 120);
-            _bottomSprite.AddCollider("walking", new Rectangle(0, 0, 32, 32));
+            _bottomSprite.AddCollider("walking", new Rectangle(6, 2, 16, 30));
             _bottomSprite.AddFrames("walking", new List<Rectangle>()
             {
                 new Rectangle(0, 160, 32, 32),
@@ -129,7 +148,7 @@ namespace Winter_Defense.Characters
 
             // Jumping up
             _bottomSprite.CreateFrameList("jumping", 60, false);
-            _bottomSprite.AddCollider("jumping", new Rectangle(0, 0, 32, 32));
+            _bottomSprite.AddCollider("jumping", new Rectangle(6, 2, 16, 30));
             _bottomSprite.AddFrames("jumping", new List<Rectangle>()
             {
                 new Rectangle(0, 288, 32, 32),
@@ -138,7 +157,7 @@ namespace Winter_Defense.Characters
 
             // Jumping apex
             _bottomSprite.CreateFrameList("jumping_apex", 0, false);
-            _bottomSprite.AddCollider("jumping_apex", new Rectangle(0, 0, 32, 32));
+            _bottomSprite.AddCollider("jumping_apex", new Rectangle(6, 2, 16, 30));
             _bottomSprite.AddFrames("jumping_apex", new List<Rectangle>()
             {
                 new Rectangle(64, 289, 32, 32),
@@ -147,7 +166,7 @@ namespace Winter_Defense.Characters
 
             // Jumping falling
             _bottomSprite.CreateFrameList("jumping_impact", 40, false);
-            _bottomSprite.AddCollider("jumping_impact", new Rectangle(0, 0, 32, 32));
+            _bottomSprite.AddCollider("jumping_impact", new Rectangle(6, 2, 16, 30));
             _bottomSprite.AddFrames("jumping_impact", new List<Rectangle>()
             {
                 new Rectangle(128, 288, 32, 32),
@@ -156,14 +175,25 @@ namespace Winter_Defense.Characters
 
             // Recharging
             _bottomSprite.CreateFrameList("recharging", 120);
-            _bottomSprite.AddCollider("recharging", new Rectangle(0, 0, 32, 32));
+            _bottomSprite.AddCollider("recharging", new Rectangle(6, 2, 16, 30));
             _bottomSprite.AddFrames("recharging", new List<Rectangle>()
             {
                 new Rectangle(0, 225, 32, 32),
                 new Rectangle(32, 225, 32, 32),
                 new Rectangle(64, 225, 32, 32),
                 new Rectangle(96, 225, 32, 32)
-            }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 });
+            });
+
+            // Shot
+            _bottomSprite.CreateFrameList("attack_shot", 80, false);
+            _bottomSprite.AddCollider("attack_shot", new Rectangle(6, 2, 16, 30));
+            _bottomSprite.AddFrames("attack_shot", new List<Rectangle>()
+            {
+                new Rectangle(0, 193, 32, 31),
+                new Rectangle(32, 193, 32, 31),
+                new Rectangle(64, 193, 32, 31),
+                new Rectangle(96, 193, 32, 31)
+            }, new int[] { 0, 0, 0, 0 }, new int[] { 1, 1, 1, 1 });
         }
 
         public void UpdateWithKeyLock(GameTime gameTime, bool keyLock)
@@ -188,8 +218,6 @@ namespace Winter_Defense.Characters
             if (_isOnGround && !isOnGroundBefore && !_groundImpact)
             {
                 _groundImpact = true;
-                CharacterSprite.SetFrameList("jumping_impact");
-                _bottomSprite.SetFrameList("jumping_impact");
             }
             if (_groundImpact && CharacterSprite.Looped)
             {
@@ -259,6 +287,10 @@ namespace Winter_Defense.Characters
             {
                 _bottomSprite.SetFrameList("recharging");
             }
+            else if (_isAttacking)
+            {
+                _bottomSprite.SetFrameList(_attackFrameList[_attackType]);
+            }
             else if (_groundImpact && !_recharging)
             {
                 _bottomSprite.SetFrameList("jumping_impact");
@@ -266,10 +298,6 @@ namespace Winter_Defense.Characters
             else if (walking)
             {
                 _bottomSprite.SetFrameList("walking");
-            }
-            else if (_isAttacking)
-            {
-                _bottomSprite.SetFrameList(_attackFrameList[_attackType]);
             }
             else
             {
@@ -279,6 +307,9 @@ namespace Winter_Defense.Characters
 
         private void CheckKeys(GameTime gameTime)
         {
+            if (_dying)
+                return;
+
             // Movement
             if (InputManager.Instace.KeyDown(Keys.Left) && Math.Abs(_knockbackAcceleration) < 1200f)
             {
@@ -293,14 +324,42 @@ namespace Winter_Defense.Characters
                 _movement = 1.0f;
             }
 
+            // Attack
+            if (!_isAttacking && InputManager.Instace.KeyDown(Keys.Z))
+                RequestAttack(ShotAttack);
+
             _isJumping = InputManager.Instace.KeyDown(Keys.C);
             _recharging = InputManager.Instace.KeyDown(Keys.R);
         }
 
+        public override void DoAttack()
+        {
+            if (_shot) return;
+            _shot = true;
+            var damage = 1;
+            var position = Position;
+            var dx = 5;
+
+            // Initial position of the projectile
+            if (CharacterSprite.Effect == SpriteEffects.FlipHorizontally)
+            {
+                position += new Vector2(-2, 12);
+                dx *= -1;
+            }
+            else
+            {
+                position += new Vector2(25, 12);
+            }
+
+            ((SceneMap)SceneManager.Instance.GetCurrentScene()).CreateProjectile("snowball", position, dx, 0, damage, ProjectileSubject.FromPlayer);
+        }
+
+        #region Draw
         public override void DrawCharacter(SpriteBatch spriteBatch)
         {
             _bottomSprite.Draw(spriteBatch, new Vector2(BoundingRectangle.X, BoundingRectangle.Y));
             base.DrawCharacter(spriteBatch);
         }
+        #endregion
     }
 }

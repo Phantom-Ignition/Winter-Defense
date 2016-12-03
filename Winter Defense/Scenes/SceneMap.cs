@@ -42,6 +42,11 @@ namespace Winter_Defense.Scenes
         private GameCrystal _crystal;
 
         //--------------------------------------------------
+        // Background
+
+        private Texture2D _backgroundTexture;
+
+        //--------------------------------------------------
         // Random
 
         private Random _rand;
@@ -73,6 +78,9 @@ namespace Winter_Defense.Scenes
             _projectiles = new List<GameProjectile>();
             _projectilesColliderTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
             _projectilesColliderTexture.SetData<Color>(new Color[] { Color.Orange });
+
+            // Backgroudn init
+            _backgroundTexture = ImageManager.loadScene("sceneMap", "Background");
 
             // Random init
             _rand = new Random();
@@ -153,9 +161,14 @@ namespace Winter_Defense.Scenes
             base.Draw(spriteBatch, viewportAdapter);
             var debugMode = SceneManager.Instance.DebugMode;
 
+            // Draw the background
+            spriteBatch.Begin(transformMatrix: viewportAdapter.GetScaleMatrix(), samplerState: SamplerState.PointClamp);
+            spriteBatch.Draw(_backgroundTexture, Vector2.Zero, Color.White);
+            spriteBatch.End();
+
             // Draw the camera (with the map)
             MapManager.Instance.Draw(_camera, spriteBatch);
-
+            
             spriteBatch.Begin(transformMatrix: _camera.GetViewMatrix(), samplerState: SamplerState.PointClamp);
 
             // Draw the crystal

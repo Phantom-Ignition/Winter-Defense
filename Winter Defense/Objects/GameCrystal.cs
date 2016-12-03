@@ -45,7 +45,7 @@ namespace Winter_Defense.Objects
         public void Update(GameTime gameTime)
         {
             var deltaTime = (float)gameTime.TotalGameTime.TotalMilliseconds / 20;
-            _crystalPosition.Y = (float)MathUtils.SinInterpolation(_position.Y - 3, _position.Y + 5, deltaTime);
+            _crystalPosition.Y = (int)MathUtils.SinInterpolation(_position.Y - 3, _position.Y + 5, deltaTime);
         }
 
         public void Draw(SpriteBatch spriteBatch)

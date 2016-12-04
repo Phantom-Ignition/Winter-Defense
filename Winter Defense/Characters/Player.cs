@@ -13,8 +13,6 @@ using MonoGame.Extended.TextureAtlases;
 using MonoGame.Extended.Particles.Profiles;
 using MonoGame.Extended;
 using MonoGame.Extended.Particles.Modifiers;
-using MonoGame.Extended.Particles.Modifiers.Interpolators;
-using MonoGame.Extended.Particles.Modifiers.Containers;
 using Winter_Defense.Particles;
 
 namespace Winter_Defense.Characters
@@ -552,15 +550,18 @@ namespace Winter_Defense.Characters
         private void TriggerRechargingParticles()
         {
             var linearModifier = (LinearGravityModifier)_rechargingParticleEffect.Emitters[0].Modifiers[0];
+            var profile = (LineProfile)_rechargingParticleEffect.Emitters[0].Profile;
             var positionInc = new Vector2(34, 28);
             if (CharacterSprite.Effect == SpriteEffects.FlipHorizontally)
             {
                 positionInc.X = -5;
                 linearModifier.Direction = new Vector2(1, -1);
+                profile.Axis = new Vector2(1, -1);
             }
             else
             {
                 linearModifier.Direction = -Vector2.One;
+                profile.Axis = new Vector2(-1, -1);
             }
             _rechargingParticleEffect.Trigger(Position + positionInc);
         }
@@ -594,7 +595,7 @@ namespace Winter_Defense.Characters
             spriteBatch.Draw(_rechargingParticleEffect);
             spriteBatch.Draw(_walkParticleEffect);
             spriteBatch.Draw(_groundImpactParticleEffect);
-            //spriteBatch.Draw(_blizzardParticleEffect);
+            spriteBatch.Draw(_blizzardParticleEffect);
         }
         #endregion
     }

@@ -11,6 +11,11 @@ using Winter_Defense.Objects;
 using MonoGame.Extended.Particles;
 using MonoGame.Extended.TextureAtlases;
 using MonoGame.Extended.Particles.Profiles;
+using MonoGame.Extended;
+using MonoGame.Extended.Particles.Modifiers;
+using MonoGame.Extended.Particles.Modifiers.Interpolators;
+using MonoGame.Extended.Particles.Modifiers.Containers;
+using Winter_Defense.Particles;
 
 namespace Winter_Defense.Characters
 {
@@ -37,10 +42,12 @@ namespace Winter_Defense.Characters
         private bool _recharging;
 
         //--------------------------------------------------
-        // Shot Particle effect
+        // Particle Effects
 
         private ParticleEffect _shotParticleEffect;
-        public ParticleEffect ShotParticleEffect => _shotParticleEffect;
+        private ParticleEffect _walkParticleEffect;
+        private ParticleEffect _groundImpactParticleEffect;
+        private float _walkParticleEffectInterval;
 
         //--------------------------------------------------
         // Keys locked (no movement)
@@ -212,13 +219,78 @@ namespace Winter_Defense.Characters
 
         private void ParticlesInit(TextureRegion2D textureRegion)
         {
+            var profile = Profile.Spray(new Vector2(1, 0), (float)Math.PI / 3.0f);
             _shotParticleEffect = new ParticleEffect
             {
                 Emitters = new[]
                 {
-                    new ParticleEmitter(textureRegion, 500, TimeSpan.FromSeconds(2.5), Profile.Ring(150f, Profile.CircleRadiation.In))
+                    new ParticleEmitter(textureRegion, 25, TimeSpan.FromSeconds(1), profile, false)
                     {
-
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(30f, 100f),
+                            Quantity = 5,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(1.5f, 3.5f),
+                            Color = new Range<HslColor>(new HslColor(186, 0.8f, 0.96f), new HslColor(186, 1.0f, 0.96f))
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 90f },
+                            new RotationModifier { RotationRate = 1f },
+                            new OpacityFastFadeModifier(),
+                            new MapContainerModifier { RestitutionCoefficient = 0.3f }
+                        }
+                    }
+                }
+            };
+            var groundImpactProfile = Profile.Line(Vector2.UnitX, 11);
+            _groundImpactParticleEffect = new ParticleEffect
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 50, TimeSpan.FromSeconds(0.4f), groundImpactProfile)
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(20f, 40f),
+                            Quantity = 10,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(3.0f, 5.0f),
+                            Color = new HslColor(186, 0.13f, 0.96f)
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 70f },
+                            new MapContainerModifier { RestitutionCoefficient = 0.3f },
+                            new OpacityFastFadeModifier()
+                        }
+                    }
+                }
+            };
+            var walkProfile = Profile.Line(Vector2.UnitX, 10);
+            _walkParticleEffect = new ParticleEffect
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 50, TimeSpan.FromSeconds(0.4f), walkProfile)
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(20f, 30f),
+                            Quantity = 5,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(3.0f, 5.0f),
+                            Color = new HslColor(186, 0.13f, 0.96f),
+                            Opacity = 0.9f
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = Vector2.Zero, Strength = 100.0f },
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 70.0f },
+                            new MapContainerModifier { RestitutionCoefficient = 0.3f },
+                            new OpacityFastFadeModifier()
+                        }
                     }
                 }
             };
@@ -239,7 +311,10 @@ namespace Winter_Defense.Characters
             CheckKeys(gameTime);
             base.Update(gameTime);
             UpdateSprites(gameTime, isOnGroundBefore);
-            _shotParticleEffect.Update(deltaTime);
+            UpdateParticles(deltaTime);
+
+            if (InputManager.Instace.KeyPressed(Keys.P))
+                _walkParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
         }
 
         private void UpdateSprites(GameTime gameTime, bool isOnGroundBefore)
@@ -248,10 +323,25 @@ namespace Winter_Defense.Characters
             if (_isOnGround && !isOnGroundBefore && !_groundImpact)
             {
                 _groundImpact = true;
+                TriggerGroundImpactParticles();
             }
             if (_groundImpact && CharacterSprite.Looped)
             {
                 _groundImpact = false;
+            }
+        }
+
+        private void UpdateParticles(float deltaTime)
+        {
+            _shotParticleEffect.Update(deltaTime);
+            _walkParticleEffect.Update(deltaTime);
+            _groundImpactParticleEffect.Update(deltaTime);
+
+            _walkParticleEffectInterval += deltaTime;
+            if (WalkingByInput() && _isOnGround && _walkParticleEffectInterval > 0.2f)
+            {
+                TriggerWalkParticles();
+                _walkParticleEffectInterval = 0.0f;
             }
         }
 
@@ -262,8 +352,6 @@ namespace Winter_Defense.Characters
 
         public override void UpdateFrameList()
         {
-            var walking = (InputManager.Instace.KeyDown(Keys.Left) || InputManager.Instace.KeyDown(Keys.Right)) && !_keysLocked;
-
             // Main Sprite
             if (_dying)
             {
@@ -292,7 +380,7 @@ namespace Winter_Defense.Characters
                     CharacterSprite.SetFrameList("jumping");
                 }
             }
-            else if (walking)
+            else if (WalkingByInput())
             {
                 CharacterSprite.SetFrameList("walking");
             }
@@ -313,7 +401,7 @@ namespace Winter_Defense.Characters
                     _bottomSprite.SetFrameList("jumping");
                 }
             }
-            else if (_recharging && !walking)
+            else if (_recharging && !WalkingByInput())
             {
                 _bottomSprite.SetFrameList("recharging");
             }
@@ -321,7 +409,7 @@ namespace Winter_Defense.Characters
             {
                 _bottomSprite.SetFrameList("jumping_impact");
             }
-            else if (walking)
+            else if (WalkingByInput())
             {
                 _bottomSprite.SetFrameList("walking");
             }
@@ -384,8 +472,38 @@ namespace Winter_Defense.Characters
                 position += new Vector2(25, 12);
             }
 
-            _knockbackAcceleration = 3800.0f * -Math.Sign(dx);
+            var sign = Math.Sign(dx);
+            var particlePosition = new Vector2(position.X + 5, position.Y + 5);
+            TriggerShotParticles(new Vector2(sign, 0), particlePosition);
+            _knockbackAcceleration = 3800.0f * -sign;
             ((SceneMap)SceneManager.Instance.GetCurrentScene()).CreateProjectile("snowball", position, dx, 0, damage, ProjectileSubject.FromPlayer);
+        }
+
+        private void TriggerShotParticles(Vector2 direction, Vector2 position)
+        {
+            var profile = (SprayProfile)_shotParticleEffect.Emitters[0].Profile;
+            profile.Direction = direction;
+            _shotParticleEffect.Trigger(position);
+        }
+
+        private void TriggerGroundImpactParticles()
+        {
+            var position = new Vector2(BoundingRectangle.Center.X, BoundingRectangle.Bottom);
+            _groundImpactParticleEffect.Trigger(position);
+        }
+
+        private void TriggerWalkParticles()
+        {
+            var inc = Math.Sign(_velocity.X) * 5;
+            var position = new Vector2(BoundingRectangle.Center.X + inc, BoundingRectangle.Bottom);
+            var linearModifier = (LinearGravityModifier)_walkParticleEffect.Emitters[0].Modifiers[0];
+            linearModifier.Direction = Math.Sign(_velocity.X) * -Vector2.UnitX;
+            _walkParticleEffect.Trigger(position);
+        }
+
+        private bool WalkingByInput()
+        {
+            return (InputManager.Instace.KeyDown(Keys.Left) || InputManager.Instace.KeyDown(Keys.Right)) && !_keysLocked;
         }
 
         #region Draw
@@ -394,6 +512,8 @@ namespace Winter_Defense.Characters
             _bottomSprite.Draw(spriteBatch, new Vector2(BoundingRectangle.X, BoundingRectangle.Y));
             base.DrawCharacter(spriteBatch);
             spriteBatch.Draw(_shotParticleEffect);
+            spriteBatch.Draw(_walkParticleEffect);
+            spriteBatch.Draw(_groundImpactParticleEffect);
         }
         #endregion
     }

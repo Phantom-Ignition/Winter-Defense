@@ -47,7 +47,13 @@ namespace Winter_Defense.Characters
         private ParticleEffect _shotParticleEffect;
         private ParticleEffect _walkParticleEffect;
         private ParticleEffect _groundImpactParticleEffect;
+        private ParticleEffect _blizzardParticleEffect;
         private float _walkParticleEffectInterval;
+
+        //--------------------------------------------------
+        // Half Screen Size
+
+        private Vector2 _halfScreenSize;
 
         //--------------------------------------------------
         // Keys locked (no movement)
@@ -136,13 +142,15 @@ namespace Winter_Defense.Characters
             {
                 "attack_shot"
             };
-
             AttackCooldown = 300f;
 
             // Particles init
             var particleTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
             particleTexture.SetData(new[] { Color.White });
             ParticlesInit(new TextureRegion2D(particleTexture));
+
+            // Misc init
+            _halfScreenSize = SceneManager.Instance.VirtualSize / 2;
         }
 
         private void SetupBottomSprite(Texture2D texture)
@@ -244,12 +252,11 @@ namespace Winter_Defense.Characters
                     }
                 }
             };
-            var groundImpactProfile = Profile.Line(Vector2.UnitX, 11);
             _groundImpactParticleEffect = new ParticleEffect
             {
                 Emitters = new[]
                 {
-                    new ParticleEmitter(textureRegion, 50, TimeSpan.FromSeconds(0.4f), groundImpactProfile)
+                    new ParticleEmitter(textureRegion, 50, TimeSpan.FromSeconds(0.4f), Profile.Line(Vector2.UnitX, 11))
                     {
                         Parameters = new ParticleReleaseParameters
                         {
@@ -268,12 +275,11 @@ namespace Winter_Defense.Characters
                     }
                 }
             };
-            var walkProfile = Profile.Line(Vector2.UnitX, 10);
             _walkParticleEffect = new ParticleEffect
             {
                 Emitters = new[]
                 {
-                    new ParticleEmitter(textureRegion, 50, TimeSpan.FromSeconds(0.4f), walkProfile)
+                    new ParticleEmitter(textureRegion, 50, TimeSpan.FromSeconds(0.4f), Profile.Line(Vector2.UnitX, 10))
                     {
                         Parameters = new ParticleReleaseParameters
                         {
@@ -290,6 +296,30 @@ namespace Winter_Defense.Characters
                             new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 70.0f },
                             new MapContainerModifier { RestitutionCoefficient = 0.3f },
                             new OpacityFastFadeModifier()
+                        }
+                    }
+                }
+            };
+            var blizzardProfile = Profile.Line(Vector2.UnitX, SceneManager.Instance.VirtualSize.X + 50.0f);
+            _blizzardParticleEffect = new ParticleEffect
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 1000, TimeSpan.FromSeconds(3.0f), blizzardProfile, false)
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(10f, 25f),
+                            Quantity = 3,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(1.0f, 3.0f),
+                            Color = new HslColor(186, 0.13f, 0.96f),
+                            Opacity = 0.9f
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 100f },
+                            new LinearGravityModifier { Direction = new Vector2(1, 0), Strength = 30f }
                         }
                     }
                 }
@@ -336,6 +366,8 @@ namespace Winter_Defense.Characters
             _shotParticleEffect.Update(deltaTime);
             _walkParticleEffect.Update(deltaTime);
             _groundImpactParticleEffect.Update(deltaTime);
+            _blizzardParticleEffect.Update(deltaTime);
+            _blizzardParticleEffect.Trigger(new Vector2(_halfScreenSize.X - 50.0f, -50.0f));
 
             _walkParticleEffectInterval += deltaTime;
             if (WalkingByInput() && _isOnGround && _walkParticleEffectInterval > 0.2f)
@@ -514,6 +546,7 @@ namespace Winter_Defense.Characters
             spriteBatch.Draw(_shotParticleEffect);
             spriteBatch.Draw(_walkParticleEffect);
             spriteBatch.Draw(_groundImpactParticleEffect);
+            spriteBatch.Draw(_blizzardParticleEffect);
         }
         #endregion
     }

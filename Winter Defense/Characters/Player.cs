@@ -45,6 +45,7 @@ namespace Winter_Defense.Characters
         // Particle Effects
 
         private ParticleEffect _shotParticleEffect;
+        private ParticleEffect _rechargingParticleEffect;
         private ParticleEffect _walkParticleEffect;
         private ParticleEffect _groundImpactParticleEffect;
         private ParticleEffect _blizzardParticleEffect;
@@ -211,7 +212,7 @@ namespace Winter_Defense.Characters
                 new Rectangle(32, 225, 32, 32),
                 new Rectangle(64, 225, 32, 32),
                 new Rectangle(96, 225, 32, 32)
-            });
+            }, new int[] { 0, 0, 0, 0 }, new int[] { 1, 1, 1, 1 });
 
             // Shot
             _bottomSprite.CreateFrameList("attack_shot", 80, false);
@@ -227,12 +228,12 @@ namespace Winter_Defense.Characters
 
         private void ParticlesInit(TextureRegion2D textureRegion)
         {
-            var profile = Profile.Spray(new Vector2(1, 0), (float)Math.PI / 3.0f);
+            var shotProfile = Profile.Spray(new Vector2(1, 0), (float)Math.PI / 3.0f);
             _shotParticleEffect = new ParticleEffect
             {
                 Emitters = new[]
                 {
-                    new ParticleEmitter(textureRegion, 25, TimeSpan.FromSeconds(1), profile, false)
+                    new ParticleEmitter(textureRegion, 25, TimeSpan.FromSeconds(1), shotProfile, false)
                     {
                         Parameters = new ParticleReleaseParameters
                         {
@@ -248,6 +249,30 @@ namespace Winter_Defense.Characters
                             new RotationModifier { RotationRate = 1f },
                             new OpacityFastFadeModifier(),
                             new MapContainerModifier { RestitutionCoefficient = 0.3f }
+                        }
+                    }
+                }
+            };
+            var rechargingProfile = Profile.Line(new Vector2(-1, -1), 5.0f);
+            _rechargingParticleEffect = new ParticleEffect
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 500, TimeSpan.FromSeconds(0.2f), rechargingProfile, false)
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(20f, 40f),
+                            Quantity = 3,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(1.0f, 3.0f),
+                            Color = new HslColor(186, 0.13f, 0.96f)
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = -Vector2.One, Strength = 200f },
+                            new MapContainerModifier { RestitutionCoefficient = 0.3f },
+                            new OpacityFastFadeModifier()
                         }
                     }
                 }
@@ -305,11 +330,11 @@ namespace Winter_Defense.Characters
             {
                 Emitters = new[]
                 {
-                    new ParticleEmitter(textureRegion, 1000, TimeSpan.FromSeconds(3.0f), blizzardProfile, false)
+                    new ParticleEmitter(textureRegion, 1000, TimeSpan.FromSeconds(6.0f), blizzardProfile, false)
                     {
                         Parameters = new ParticleReleaseParameters
                         {
-                            Speed = new Range<float>(10f, 25f),
+                            Speed = new Range<float>(5f, 15f),
                             Quantity = 3,
                             Rotation = new Range<float>(-1f, 1f),
                             Scale = new Range<float>(1.0f, 3.0f),
@@ -318,8 +343,9 @@ namespace Winter_Defense.Characters
                         },
                         Modifiers = new IModifier[]
                         {
-                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 100f },
-                            new LinearGravityModifier { Direction = new Vector2(1, 0), Strength = 30f }
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 20f },
+                            new LinearGravityModifier { Direction = new Vector2(1, 0), Strength = 5f },
+                            new RotationModifier { RotationRate = 1.0f }
                         }
                     }
                 }
@@ -343,8 +369,8 @@ namespace Winter_Defense.Characters
             UpdateSprites(gameTime, isOnGroundBefore);
             UpdateParticles(deltaTime);
 
-            if (InputManager.Instace.KeyPressed(Keys.P))
-                _walkParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
+            if (InputManager.Instace.KeyDown(Keys.P))
+                _rechargingParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
         }
 
         private void UpdateSprites(GameTime gameTime, bool isOnGroundBefore)
@@ -364,6 +390,7 @@ namespace Winter_Defense.Characters
         private void UpdateParticles(float deltaTime)
         {
             _shotParticleEffect.Update(deltaTime);
+            _rechargingParticleEffect.Update(deltaTime);
             _walkParticleEffect.Update(deltaTime);
             _groundImpactParticleEffect.Update(deltaTime);
             _blizzardParticleEffect.Update(deltaTime);
@@ -483,6 +510,10 @@ namespace Winter_Defense.Characters
 
             // Recharging
             _recharging = _isOnGround && InputManager.Instace.KeyDown(Keys.X);
+            if (_recharging && CharacterSprite.CurrentFrame == 0)
+            {
+                TriggerRechargingParticles();
+            }
         }
 
         public override void DoAttack()
@@ -518,6 +549,22 @@ namespace Winter_Defense.Characters
             _shotParticleEffect.Trigger(position);
         }
 
+        private void TriggerRechargingParticles()
+        {
+            var linearModifier = (LinearGravityModifier)_rechargingParticleEffect.Emitters[0].Modifiers[0];
+            var positionInc = new Vector2(34, 28);
+            if (CharacterSprite.Effect == SpriteEffects.FlipHorizontally)
+            {
+                positionInc.X = -5;
+                linearModifier.Direction = new Vector2(1, -1);
+            }
+            else
+            {
+                linearModifier.Direction = -Vector2.One;
+            }
+            _rechargingParticleEffect.Trigger(Position + positionInc);
+        }
+
         private void TriggerGroundImpactParticles()
         {
             var position = new Vector2(BoundingRectangle.Center.X, BoundingRectangle.Bottom);
@@ -544,9 +591,10 @@ namespace Winter_Defense.Characters
             _bottomSprite.Draw(spriteBatch, new Vector2(BoundingRectangle.X, BoundingRectangle.Y));
             base.DrawCharacter(spriteBatch);
             spriteBatch.Draw(_shotParticleEffect);
+            spriteBatch.Draw(_rechargingParticleEffect);
             spriteBatch.Draw(_walkParticleEffect);
             spriteBatch.Draw(_groundImpactParticleEffect);
-            spriteBatch.Draw(_blizzardParticleEffect);
+            //spriteBatch.Draw(_blizzardParticleEffect);
         }
         #endregion
     }

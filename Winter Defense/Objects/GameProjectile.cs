@@ -1,8 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended;
+using MonoGame.Extended.Particles;
+using MonoGame.Extended.Particles.Modifiers;
+using MonoGame.Extended.Particles.Profiles;
 using MonoGame.Extended.Sprites;
+using MonoGame.Extended.TextureAtlases;
 using System;
 using Winter_Defense.Managers;
+using Winter_Defense.Particles;
 
 namespace Winter_Defense.Objects
 {
@@ -18,17 +25,28 @@ namespace Winter_Defense.Objects
     public class GameProjectile
     {
         //--------------------------------------------------
+        // Gravity
+
+        protected const float GravityAcceleration = 40.0f;
+
+        //--------------------------------------------------
         // Sprite
 
         private Sprite _sprite;
-        public Sprite Sprite { get { return _sprite; } }
+        public Sprite Sprite => _sprite;
 
         //--------------------------------------------------
         // Position
 
         private Vector2 _position;
-        public Vector2 Position { get { return _position; } }
+        public Vector2 Position => _position;
         public Vector2 LastPosition { get; private set; }
+
+        //--------------------------------------------------
+        // Distance Traveled
+
+        private float _distanceTraveledX;
+        private const float MaxDistanceTraveled = 96.0f;
 
         //--------------------------------------------------
         // Acceleration
@@ -63,9 +81,10 @@ namespace Winter_Defense.Objects
         public int Damage { get { return _damage; } }
 
         //--------------------------------------------------
-        // Request erase
+        // Request erase & Request Particles
 
         public bool RequestErase { get; set; }
+        public bool RequestParticles { get; set; }
 
         //--------------------------------------------------
         // Random
@@ -100,25 +119,40 @@ namespace Winter_Defense.Objects
 
         public void Update(GameTime gameTime)
         {
+            var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             LastPosition = _position;
-            _position += _acceleration;
+            
+            _position += _acceleration * deltaTime;
+            _distanceTraveledX += _acceleration.X * deltaTime;
+            if (Math.Abs(_distanceTraveledX) > MaxDistanceTraveled)
+            {
+                _position.Y += GravityAcceleration * deltaTime;
+            }
+
             _sprite.Position = _position;
+
             var tileX = (int)(_position.X / MapManager.Instance.TileSize.X);
             var tileY = (int)(_position.Y / MapManager.Instance.TileSize.Y);
+            var tileY2 = (int)((_position.Y + Sprite.TextureRegion.Height / 2) / MapManager.Instance.TileSize.Y);
             if (_position.X >= MapManager.Instance.MapWidth || _position.Y >= MapManager.Instance.MapHeight ||
                 Position.X + Sprite.TextureRegion.Width <= 0 || Position.Y + Sprite.TextureRegion.Height <= 0)
                 Destroy(false);
 
-            if (MapManager.Instance.IsTileBlocked(tileX, tileY))
-            {
-                Destroy();
-            }
+            if (MapManager.Instance.IsTileBlocked(tileX, tileY2)) Destroy(true);
+            if (MapManager.Instance.IsTileBlocked(tileX, tileY)) Destroy(false);
         }
 
-        public void Destroy(bool showParticles = true)
+        public void Destroy(bool showParticles)
         {
             Sprite.Alpha = 0.0f;
             RequestErase = true;
+            RequestParticles = showParticles;
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Draw(Sprite);
         }
     }
 }

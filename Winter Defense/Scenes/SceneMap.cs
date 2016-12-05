@@ -10,6 +10,10 @@ using MonoGame.Extended.Particles;
 using Winter_Defense.Characters;
 using System.Collections.Generic;
 using Winter_Defense.Objects;
+using MonoGame.Extended.TextureAtlases;
+using MonoGame.Extended.Particles.Profiles;
+using MonoGame.Extended.Particles.Modifiers;
+using Winter_Defense.Particles;
 
 namespace Winter_Defense.Scenes
 {
@@ -43,9 +47,20 @@ namespace Winter_Defense.Scenes
         private GameCrystal _crystal;
 
         //--------------------------------------------------
+        // Particle Effects
+
+        private ParticleEffect _snowballDestroyParticleEffect;
+        private ParticleEffect _blizzardParticleEffect;
+
+        //--------------------------------------------------
         // Background
 
         private Texture2D _backgroundTexture;
+
+        //--------------------------------------------------
+        // Half Screen Size
+
+        private Vector2 _halfScreenSize;
 
         //--------------------------------------------------
         // Random
@@ -83,6 +98,14 @@ namespace Winter_Defense.Scenes
             // Background init
             _backgroundTexture = ImageManager.loadScene("sceneMap", "Background");
 
+            // Particles init
+            var particleTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
+            particleTexture.SetData(new[] { Color.White });
+            ParticlesInit(new TextureRegion2D(particleTexture));
+
+            // Misc init
+            _halfScreenSize = SceneManager.Instance.VirtualSize / 2;
+
             // Random init
             _rand = new Random();
 
@@ -93,6 +116,60 @@ namespace Winter_Defense.Scenes
             var mapSize = new Vector2(MapManager.Instance.MapWidth, MapManager.Instance.MapHeight);
             var crystalPosition = new Vector2(mapSize.X / 2 - 48, 96);
             _crystal = new GameCrystal(crystalPosition, ImageManager.loadCharacter("Crystal"));
+        }
+
+        private void ParticlesInit(TextureRegion2D textureRegion)
+        {
+
+            var blizzardProfile = Profile.Line(Vector2.UnitX, SceneManager.Instance.VirtualSize.X + 50.0f);
+            _blizzardParticleEffect = new ParticleEffect
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 1000, TimeSpan.FromSeconds(6.0f), blizzardProfile, false)
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(5f, 15f),
+                            Quantity = 2,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(1.0f, 3.0f),
+                            Color = new HslColor(186, 0.13f, 0.96f),
+                            Opacity = 0.9f
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 20f },
+                            new LinearGravityModifier { Direction = new Vector2(1, 0), Strength = 5f },
+                            new RotationModifier { RotationRate = 1.0f }
+                        }
+                    }
+                }
+            };
+            _snowballDestroyParticleEffect = new ParticleEffect()
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 500, TimeSpan.FromSeconds(1.5), Profile.Spray(-Vector2.UnitY, (float)Math.PI), false)
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(30f, 60f),
+                            Quantity = 10,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(2.0f, 4.5f),
+                            Color = new HslColor(186, 0.13f, 0.96f)
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 150f },
+                            new MapContainerModifier { RestitutionCoefficient = 0.2f },
+                            new RotationModifier { RotationRate = 2.0f },
+                            new OpacityFastFadeModifier()
+                        }
+                    }
+                }
+            };
         }
 
         private void LoadMap(int mapId)
@@ -120,8 +197,12 @@ namespace Winter_Defense.Scenes
 
         public override void Update(GameTime gameTime)
         {
+            var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             _crystal.Update(gameTime);
             _player.Update(gameTime);
+            _snowballDestroyParticleEffect.Update(deltaTime);
+            _blizzardParticleEffect.Update(deltaTime);
+            _blizzardParticleEffect.Trigger(new Vector2(_halfScreenSize.X - 50.0f, -50.0f));
             UpdateCamera();
             base.Update(gameTime);
 
@@ -132,7 +213,15 @@ namespace Winter_Defense.Scenes
                     _player.ReceiveAttack(_projectiles[i].Damage, _projectiles[i].LastPosition);
 
                 if (_projectiles[i].RequestErase)
+                {
+                    if (_projectiles[i].RequestParticles)
+                    {
+                        var spriteBr = _projectiles[i].Sprite.BoundingRectangle;
+                        var particlePosition = new Vector2((int)spriteBr.Center.X, (int)spriteBr.Center.Y);
+                        _snowballDestroyParticleEffect.Trigger(particlePosition);
+                    }
                     _projectiles.Remove(_projectiles[i]);
+                }
             }
 
             DebugValues["Delta Time"] = gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
@@ -178,9 +267,13 @@ namespace Winter_Defense.Scenes
             // Draw the projectiles
             foreach (var projectile in _projectiles)
             {
-                spriteBatch.Draw(projectile.Sprite);
+                projectile.Draw(spriteBatch);
                 if (debugMode) spriteBatch.Draw(_projectilesColliderTexture, projectile.BoundingBox, Color.White * 0.5f);
             }
+
+            // Draw the particles
+            spriteBatch.Draw(_snowballDestroyParticleEffect);
+            spriteBatch.Draw(_blizzardParticleEffect);
 
             spriteBatch.End();
         }

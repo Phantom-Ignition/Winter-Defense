@@ -16,7 +16,7 @@ namespace Winter_Defense.Particles
                 var particle = iterator.Next();
 
                 var left = 0;
-                var right = SceneManager.Instance.VirtualSize.X;
+                var right = MapManager.Instance.MapWidth;
                 var top = 0;
                 var bottom = MapManager.Instance.MapHeight - MapManager.Instance.TileSize.Y;
 

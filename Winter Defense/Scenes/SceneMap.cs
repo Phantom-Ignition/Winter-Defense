@@ -68,6 +68,11 @@ namespace Winter_Defense.Scenes
         private Texture2D _backgroundTexture;
 
         //--------------------------------------------------
+        // Hud
+
+        private GameHud _gameHud;
+
+        //--------------------------------------------------
         // Enemies Spawn Manager
 
         private EnemiesSpawnManager _enemiesSpawnManager;
@@ -118,6 +123,9 @@ namespace Winter_Defense.Scenes
 
             // Background init
             _backgroundTexture = ImageManager.loadScene("sceneMap", "Background");
+
+            // Hud init
+            _gameHud = new GameHud();
 
             // Particles init
             var particleTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
@@ -230,6 +238,7 @@ namespace Winter_Defense.Scenes
             UpdateEnemiesSpawn(gameTime);
             UpdateEnemies(gameTime);
             UpdateWave(gameTime);
+            UpdateHud(gameTime);
             UpdateCamera();
 
             base.Update(gameTime);
@@ -297,6 +306,8 @@ namespace Winter_Defense.Scenes
                         projectile.Destroy(true);
                     }
                 }
+                if (enemy.BoundingRectangle.Intersects(_crystal.BoudingBox))
+                    _crystal.OnDamage();
                 if (enemy.RequestErase)
                     toRemove.Add(enemy);
             }
@@ -323,6 +334,11 @@ namespace Winter_Defense.Scenes
                     _waveIntervalTick = 5000.0f;
                 }
             }
+        }
+
+        private void UpdateHud(GameTime gameTime)
+        {
+            _gameHud.Update(gameTime);
         }
 
         private void UpdateCamera()
@@ -356,6 +372,7 @@ namespace Winter_Defense.Scenes
 
             // Draw the crystal
             _crystal.Draw(spriteBatch);
+            if (debugMode) _crystal.DrawCollider(spriteBatch);
 
             // Draw the player
             _player.DrawCharacter(spriteBatch);
@@ -376,6 +393,11 @@ namespace Winter_Defense.Scenes
             spriteBatch.Draw(_snowballDestroyParticleEffect);
             spriteBatch.Draw(_blizzardParticleEffect);
 
+            spriteBatch.End();
+
+            // Draw the HUD
+            spriteBatch.Begin(transformMatrix: viewportAdapter.GetScaleMatrix(), samplerState: SamplerState.PointClamp);
+            _gameHud.Draw(spriteBatch);
             spriteBatch.End();
         }
     }

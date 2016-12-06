@@ -55,6 +55,7 @@
     <Compile Include="Managers\MapManager.cs" />
     <Compile Include="Managers\SceneManager.cs" />
     <Compile Include="Objects\GameCrystal.cs" />
+    <Compile Include="Objects\GameHud.cs" />
     <Compile Include="Objects\GameProjectile.cs" />
     <Compile Include="Objects\PhysicalObject.cs" />
     <Compile Include="Particles\MapContainerModifier.cs" />

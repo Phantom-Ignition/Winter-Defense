@@ -28,11 +28,11 @@ namespace Winter_Defense.Sprites
         private int _currentFrame;
         private string _currentFrameList;
         private Dictionary<string, FramesList> _framesList;
-        public int CurrentFrame { get { return _currentFrame; } }
-        public string CurrentFrameList { get { return _currentFrameList; } }
+        public int CurrentFrame => _currentFrame;
+        public string CurrentFrameList => _currentFrameList;
 
         private bool _looped;
-        public bool Looped { get { return _looped; } }
+        public bool Looped => _looped;
 
         //--------------------------------------------------
         // Offset
@@ -52,12 +52,12 @@ namespace Winter_Defense.Sprites
         private float _immunityMaxTime;
         private bool _immunityAnimation;
         private float _immunityAlphaStore;
-        public bool ImmunityAnimationActive { get { return _immunityAnimation; } }
+        public bool ImmunityAnimationActive => _immunityAnimation;
 
         private bool _dyingAnimation;
         private bool _skipDyingAnimationFrames;
         private bool _dyingAnimationEnded;
-        public bool DyingAnimationEnded { get { return _dyingAnimationEnded; } }
+        public bool DyingAnimationEnded => _dyingAnimationEnded;
 
         //--------------------------------------------------
         // Collider

@@ -35,6 +35,11 @@ namespace Winter_Defense.Sprites
         public bool Looped { get { return _looped; } }
 
         //--------------------------------------------------
+        // Offset
+
+        public Vector2 Offset { get; set; }
+
+        //--------------------------------------------------
         // Animation delay
 
         private int _delayTick;
@@ -350,6 +355,7 @@ namespace Winter_Defense.Sprites
             position.Y -= GetBlockCollider().OffsetY - GetCurrentFramesList().Frames[_currentFrame].OffsetY;
 
             var roundedPosition = new Vector2((float)Math.Round(position.X), (float)Math.Round(position.Y));
+            roundedPosition += Offset;
 
             spriteBatch.Draw(TextureRegion.Texture, roundedPosition, GetCurrentFrameRectangle(),
                 Color * Alpha, Rotation, Origin, Scale, Effect, 0);

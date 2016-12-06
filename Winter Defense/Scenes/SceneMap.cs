@@ -42,6 +42,12 @@ namespace Winter_Defense.Scenes
         private List<GameProjectile> _projectiles;
 
         //--------------------------------------------------
+        // Enemies
+
+        private List<EnemyBase> _enemies;
+        private Dictionary<EnemyType, string> _enemiesNames;
+
+        //--------------------------------------------------
         // Crystal
 
         private GameCrystal _crystal;
@@ -63,9 +69,9 @@ namespace Winter_Defense.Scenes
         private Vector2 _halfScreenSize;
 
         //--------------------------------------------------
-        // Random
+        // Enemies Spawn Manager
 
-        private Random _rand;
+        private EnemiesSpawnManager _enemiesSpawnManager;
 
         //----------------------//------------------------//
 
@@ -95,6 +101,13 @@ namespace Winter_Defense.Scenes
             _projectilesColliderTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
             _projectilesColliderTexture.SetData(new Color[] { Color.Orange });
 
+            // Enemies init
+            _enemies = new List<EnemyBase>();
+            _enemiesNames = new Dictionary<EnemyType, string>
+            {
+                { EnemyType.Ghost, "Ghost" },
+            };
+
             // Background init
             _backgroundTexture = ImageManager.loadScene("sceneMap", "Background");
 
@@ -106,8 +119,8 @@ namespace Winter_Defense.Scenes
             // Misc init
             _halfScreenSize = SceneManager.Instance.VirtualSize / 2;
 
-            // Random init
-            _rand = new Random();
+            // Spawn Manager init
+            _enemiesSpawnManager = new Managers.EnemiesSpawnManager();
 
             // Load the map
             LoadMap(MapManager.FirstMap);
@@ -203,7 +216,10 @@ namespace Winter_Defense.Scenes
             _snowballDestroyParticleEffect.Update(deltaTime);
             _blizzardParticleEffect.Update(deltaTime);
             _blizzardParticleEffect.Trigger(new Vector2(_halfScreenSize.X - 50.0f, -50.0f));
+
+            UpdateEnemies(gameTime);
             UpdateCamera();
+
             base.Update(gameTime);
 
             for (var i = 0; i < _projectiles.Count; i++)
@@ -226,6 +242,26 @@ namespace Winter_Defense.Scenes
 
             DebugValues["Delta Time"] = gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
             DebugValues["Player Frame List"] = _player.CharacterSprite.CurrentFrameList.ToString();
+        }
+
+        private void UpdateEnemies(GameTime gameTime)
+        {
+            _enemiesSpawnManager.Update(gameTime);
+            while (_enemiesSpawnManager.Queue.Count > 0)
+            {
+                var model = _enemiesSpawnManager.ShiftModel();
+                var enemyName = _enemiesNames[model.Type];
+                var texture = ImageManager.loadCharacter(enemyName);
+                var enemy = (EnemyBase)Activator.CreateInstance(Type.GetType("Winter_Defense.Characters." + enemyName), texture);
+                var x = model.Side == 0 ? 16 : MapManager.Instance.MapWidth - 16;
+                var y = MapManager.Instance.MapHeight - 32;
+                enemy.SetPositionFromGround(new Vector2(x, y));
+                _enemies.Add(enemy);
+            }
+            foreach (var enemy in _enemies)
+            {
+                enemy.Update(gameTime);
+            }
         }
 
         private void UpdateCamera()
@@ -263,6 +299,10 @@ namespace Winter_Defense.Scenes
             // Draw the player
             _player.DrawCharacter(spriteBatch);
             if (debugMode) _player.DrawColliderBox(spriteBatch);
+
+            // Draw the enemies
+            _enemies.ForEach(enemy => enemy.DrawCharacter(spriteBatch));
+            if (debugMode) _enemies.ForEach(enemy => enemy.DrawColliderBox(spriteBatch));
 
             // Draw the projectiles
             foreach (var projectile in _projectiles)

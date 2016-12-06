@@ -1,15 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended;
 using MonoGame.Extended.Particles;
-using MonoGame.Extended.Particles.Modifiers;
-using MonoGame.Extended.Particles.Profiles;
 using MonoGame.Extended.Sprites;
 using MonoGame.Extended.TextureAtlases;
 using System;
 using Winter_Defense.Managers;
-using Winter_Defense.Particles;
 
 namespace Winter_Defense.Objects
 {
@@ -81,7 +76,7 @@ namespace Winter_Defense.Objects
         public int Damage { get { return _damage; } }
 
         //--------------------------------------------------
-        // Request erase & Request Particles
+        // Request Erase & Request Particles
 
         public bool RequestErase { get; set; }
         public bool RequestParticles { get; set; }
@@ -136,11 +131,11 @@ namespace Winter_Defense.Objects
             var tileY = (int)(_position.Y / MapManager.Instance.TileSize.Y);
             var tileY2 = (int)((_position.Y + Sprite.TextureRegion.Height / 2) / MapManager.Instance.TileSize.Y);
             if (_position.X >= MapManager.Instance.MapWidth || _position.Y >= MapManager.Instance.MapHeight ||
-                Position.X + Sprite.TextureRegion.Width <= 0 || Position.Y + Sprite.TextureRegion.Height <= 0)
+                Position.X + Sprite.TextureRegion.Width <= 0 || Position.Y + Sprite.TextureRegion.Height <= 0 ||
+                MapManager.Instance.IsTileBlocked(tileX, tileY))
                 Destroy(false);
 
             if (MapManager.Instance.IsTileBlocked(tileX, tileY2)) Destroy(true);
-            if (MapManager.Instance.IsTileBlocked(tileX, tileY)) Destroy(false);
         }
 
         public void Destroy(bool showParticles)

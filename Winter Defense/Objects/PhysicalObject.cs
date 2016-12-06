@@ -39,7 +39,6 @@ namespace Winter_Defense.Objects
         // Constants for controling horizontal movement
 
         protected const float MoveAcceleration = 13000.0f;
-        protected const float MaxMoveSpeed = 1750.0f;
         protected const float GroundDragFactor = 0.48f;
         protected const float AirDragFactor = 0.50f;
         protected const float DyingDragFactor = 0.8f;
@@ -126,7 +125,7 @@ namespace Winter_Defense.Objects
                 _velocity.X *= AirDragFactor;
 
             // Prevent the player from running faster than his top speed.            
-            _velocity.X = MathHelper.Clamp(_velocity.X, -MaxMoveSpeed, MaxMoveSpeed);
+            _velocity.X = MathHelper.Clamp(_velocity.X, -MaxMoveSpeed(), MaxMoveSpeed());
 
             // If the player is now colliding with the level, separate them.
             if (_velocity.X != 0f)
@@ -255,6 +254,11 @@ namespace Winter_Defense.Objects
             }
 
             previousBottom = bounds.Bottom;
+        }
+
+        protected virtual float MaxMoveSpeed()
+        {
+            return 1750.0f;
         }
     }
 }

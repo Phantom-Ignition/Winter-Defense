@@ -41,8 +41,11 @@
   <ItemGroup>
     <Compile Include="Characters\CharacterBase.cs" />
     <Compile Include="Characters\EnemyBase.cs" />
+    <Compile Include="Characters\FireGhost.cs" />
     <Compile Include="Characters\Ghost.cs" />
+    <Compile Include="Characters\PlantGhost.cs" />
     <Compile Include="Characters\Player.cs" />
+    <Compile Include="Characters\TrueGhost.cs" />
     <Compile Include="Extensions\MathUtils.cs" />
     <Compile Include="Extensions\RectangleExtensions.cs" />
     <Compile Include="GameMain.cs" />

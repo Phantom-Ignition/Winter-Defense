@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using MonoGame.Extended.Collections;
 using System;
 using System.Collections.Generic;
 using Winter_Defense.Characters;
@@ -32,10 +33,7 @@ namespace Winter_Defense.Managers
         public List<EnemyModel> Queue => _queue;
 
         //--------------------------------------------------
-        // Time
-
-        private TimeSpan _time;
-        public TimeSpan Time => _time;
+        // Time stuff
 
         private const float SpawnInterval = 1500.0f;
         private float _currentSpawnInterval;
@@ -45,8 +43,11 @@ namespace Winter_Defense.Managers
 
         private List<List<EnemyModel>> _spawnRules;
 
+        private List<EnemyType> _waveSpawnQueue;
         private int _ghostCount;
-        private int _ghostCurrentCount;
+        private int _fireGhostCount;
+        private int _plantGhostCount;
+        private int _trueGhostCount;
 
         //--------------------------------------------------
         // Waves
@@ -71,10 +72,11 @@ namespace Winter_Defense.Managers
         public EnemiesSpawnManager()
         {
             _queue = new List<EnemyModel>();
-            _time = new TimeSpan();
+            _waveSpawnQueue = new List<EnemyType>();
             _rand = new Random();
 
             CreateSpawnRules();
+            InitEnemiesCount();
         }
 
         private void CreateSpawnRules()
@@ -90,17 +92,17 @@ namespace Winter_Defense.Managers
                     },
                     new  EnemyModel
                     {
-                        Type = EnemyType.Ghost,
+                        Type = EnemyType.FireGhost,
                         Side = Side.Right
                     },
                     new  EnemyModel
                     {
-                        Type = EnemyType.Ghost,
+                        Type = EnemyType.PlantGhost,
                         Side = Side.Right
                     },
                     new  EnemyModel
                     {
-                        Type = EnemyType.Ghost,
+                        Type = EnemyType.TrueGhost,
                         Side = Side.Right
                     }
                 },
@@ -118,28 +120,29 @@ namespace Winter_Defense.Managers
                     },
                     new  EnemyModel
                     {
-                        Type = EnemyType.Ghost,
+                        Type = EnemyType.FireGhost,
                         Side = Side.Left
                     },
                     new  EnemyModel
                     {
-                        Type = EnemyType.Ghost,
+                        Type = EnemyType.FireGhost,
                         Side = Side.Left
                     }
                 }
             };
+        }
 
-            _ghostCount = 5;
+        private void InitEnemiesCount()
+        {
+            _ghostCount = 3;
+            _fireGhostCount = 2;
+            _plantGhostCount = 2;
+            _trueGhostCount = 1;
         }
 
         public void Start()
         {
             _active = true;
-        }
-
-        public void Pause()
-        {
-            _active = false;
         }
 
         public void StartNextWave()
@@ -191,7 +194,7 @@ namespace Winter_Defense.Managers
 
             return new EnemyModel
             {
-                Type = EnemyType.None,
+                Type = GetNextWaveEnemy(),
                 Side = GetRandomSide()
             };
         }
@@ -200,6 +203,36 @@ namespace Winter_Defense.Managers
         {
             _waveCompleted = true;
             _active = false;
+            if (_spawnRules.Count == 0)
+            {
+                GenerateWave();
+            }
+        }
+
+        private EnemyType GetNextWaveEnemy()
+        {
+            var enemy = _waveSpawnQueue[0];
+            _waveSpawnQueue.RemoveAt(0);
+            if (_waveSpawnQueue.Count == 0)
+            {
+                CompleteWave();
+                GenerateWave();
+            }
+            return enemy;
+        }
+
+        private void GenerateWave()
+        {
+            _waveSpawnQueue.Clear();
+            for (var i = 0; i < _ghostCount; i++)
+                _waveSpawnQueue.Add(EnemyType.Ghost);
+            for (var i = 0; i < _fireGhostCount; i++)
+                _waveSpawnQueue.Add(EnemyType.FireGhost);
+            for (var i = 0; i < _plantGhostCount; i++)
+                _waveSpawnQueue.Add(EnemyType.PlantGhost);
+            for (var i = 0; i < _trueGhostCount; i++)
+                _waveSpawnQueue.Add(EnemyType.TrueGhost);
+            _waveSpawnQueue.Shuffle(_rand);
         }
 
         private Side GetRandomSide()

@@ -42,6 +42,8 @@ namespace Winter_Defense.Characters
         //--------------------------------------------------
         // Particle Effects
 
+        private List<ParticleEffect> _particleEffects;
+
         private ParticleEffect _shotParticleEffect;
         private ParticleEffect _rechargingParticleEffect;
         private ParticleEffect _walkParticleEffect;
@@ -314,6 +316,12 @@ namespace Winter_Defense.Characters
                     }
                 }
             };
+            _particleEffects = new List<ParticleEffect>();
+            _particleEffects.AddRange(new List<ParticleEffect>
+            {
+                _shotParticleEffect, _shotParticleEffect, _rechargingParticleEffect, _walkParticleEffect,
+                _groundImpactParticleEffect
+            });
         }
 
         public void UpdateWithKeyLock(GameTime gameTime, bool keyLock)
@@ -353,10 +361,7 @@ namespace Winter_Defense.Characters
 
         private void UpdateParticles(float deltaTime)
         {
-            _shotParticleEffect.Update(deltaTime);
-            _rechargingParticleEffect.Update(deltaTime);
-            _walkParticleEffect.Update(deltaTime);
-            _groundImpactParticleEffect.Update(deltaTime);
+            _particleEffects.ForEach(particle => particle.Update(deltaTime));
 
             _walkParticleEffectInterval += deltaTime;
             if (WalkingByInput() && _isOnGround && _walkParticleEffectInterval > 0.2f)
@@ -555,10 +560,7 @@ namespace Winter_Defense.Characters
         {
             _bottomSprite.Draw(spriteBatch, new Vector2(BoundingRectangle.X, BoundingRectangle.Y));
             base.DrawCharacter(spriteBatch);
-            spriteBatch.Draw(_shotParticleEffect);
-            spriteBatch.Draw(_rechargingParticleEffect);
-            spriteBatch.Draw(_walkParticleEffect);
-            spriteBatch.Draw(_groundImpactParticleEffect);
+            _particleEffects.ForEach(particle => spriteBatch.Draw(particle));
         }
         #endregion
     }

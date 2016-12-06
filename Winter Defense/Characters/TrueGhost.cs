@@ -5,7 +5,7 @@ using Winter_Defense.Extensions;
 
 namespace Winter_Defense.Characters
 {
-    class Ghost : EnemyBase
+    class TrueGhost : EnemyBase
     {
         //--------------------------------------------------
         // Floating position
@@ -14,7 +14,7 @@ namespace Winter_Defense.Characters
 
         //----------------------//------------------------//
 
-        public Ghost(Texture2D texture) : base (texture)
+        public TrueGhost(Texture2D texture) : base(texture)
         {
             // Stand
             CharacterSprite.CreateFrameList("stand", 120);

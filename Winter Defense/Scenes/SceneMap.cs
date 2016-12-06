@@ -55,6 +55,8 @@ namespace Winter_Defense.Scenes
         //--------------------------------------------------
         // Particle Effects
 
+        private List<ParticleEffect> _particleEffects;
+
         private ParticleEffect _snowballDestroyParticleEffect;
         private ParticleEffect _blizzardParticleEffect;
 
@@ -109,6 +111,9 @@ namespace Winter_Defense.Scenes
             _enemiesNames = new Dictionary<EnemyType, string>
             {
                 { EnemyType.Ghost, "Ghost" },
+                { EnemyType.FireGhost, "FireGhost" },
+                { EnemyType.PlantGhost, "PlantGhost" },
+                { EnemyType.TrueGhost, "TrueGhost" },
             };
 
             // Background init
@@ -136,7 +141,6 @@ namespace Winter_Defense.Scenes
 
         private void ParticlesInit(TextureRegion2D textureRegion)
         {
-
             var blizzardProfile = Profile.Line(Vector2.UnitX, SceneManager.Instance.VirtualSize.X + 50.0f);
             _blizzardParticleEffect = new ParticleEffect
             {
@@ -186,6 +190,9 @@ namespace Winter_Defense.Scenes
                     }
                 }
             };
+            _particleEffects = new List<ParticleEffect>();
+            _particleEffects.Add(_blizzardParticleEffect);
+            _particleEffects.Add(_snowballDestroyParticleEffect);
         }
 
         private void LoadMap(int mapId)
@@ -217,10 +224,8 @@ namespace Winter_Defense.Scenes
 
             _crystal.Update(gameTime);
             _player.Update(gameTime);
-            _snowballDestroyParticleEffect.Update(deltaTime);
-            _blizzardParticleEffect.Update(deltaTime);
-            _blizzardParticleEffect.Trigger(_blizzardTriggerPosition);
 
+            UpdateParticles(deltaTime);
             UpdateProjectiles(gameTime);
             UpdateEnemiesSpawn(gameTime);
             UpdateEnemies(gameTime);
@@ -231,6 +236,12 @@ namespace Winter_Defense.Scenes
             
             DebugValues["Delta Time"] = gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
             DebugValues["Player Frame List"] = _player.CharacterSprite.CurrentFrameList.ToString();
+        }
+
+        private void UpdateParticles(float deltaTime)
+        {
+            _particleEffects.ForEach(particle => particle.Update(deltaTime));
+            _blizzardParticleEffect.Trigger(_blizzardTriggerPosition);
         }
 
         private void UpdateProjectiles(GameTime gameTime)

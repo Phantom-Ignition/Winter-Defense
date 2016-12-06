@@ -12,6 +12,9 @@ namespace Winter_Defense.Characters
     {
         None,
         Ghost,
+        FireGhost,
+        PlantGhost,
+        TrueGhost,
         Boss
     }
 

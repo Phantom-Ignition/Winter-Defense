@@ -58,20 +58,23 @@ namespace Winter_Defense.Scenes
         private ParticleEffect _snowballDestroyParticleEffect;
         private ParticleEffect _blizzardParticleEffect;
 
+        private Vector2 _blizzardTriggerPosition;
+
         //--------------------------------------------------
         // Background
 
         private Texture2D _backgroundTexture;
 
         //--------------------------------------------------
-        // Half Screen Size
-
-        private Vector2 _halfScreenSize;
-
-        //--------------------------------------------------
         // Enemies Spawn Manager
 
         private EnemiesSpawnManager _enemiesSpawnManager;
+
+        //--------------------------------------------------
+        // Wave Interval
+
+        private bool _waveInterval;
+        private float _waveIntervalTick;
 
         //----------------------//------------------------//
 
@@ -116,11 +119,11 @@ namespace Winter_Defense.Scenes
             particleTexture.SetData(new[] { Color.White });
             ParticlesInit(new TextureRegion2D(particleTexture));
 
-            // Misc init
-            _halfScreenSize = SceneManager.Instance.VirtualSize / 2;
+            _blizzardTriggerPosition = new Vector2(SceneManager.Instance.VirtualSize.X / 2 - 50.0f, -50.0f);
 
             // Spawn Manager init
-            _enemiesSpawnManager = new Managers.EnemiesSpawnManager();
+            _enemiesSpawnManager = new EnemiesSpawnManager();
+            _enemiesSpawnManager.Start();
 
             // Load the map
             LoadMap(MapManager.FirstMap);
@@ -211,56 +214,103 @@ namespace Winter_Defense.Scenes
         public override void Update(GameTime gameTime)
         {
             var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             _crystal.Update(gameTime);
             _player.Update(gameTime);
             _snowballDestroyParticleEffect.Update(deltaTime);
             _blizzardParticleEffect.Update(deltaTime);
-            _blizzardParticleEffect.Trigger(new Vector2(_halfScreenSize.X - 50.0f, -50.0f));
+            _blizzardParticleEffect.Trigger(_blizzardTriggerPosition);
 
+            UpdateProjectiles(gameTime);
+            UpdateEnemiesSpawn(gameTime);
             UpdateEnemies(gameTime);
+            UpdateWave(gameTime);
             UpdateCamera();
 
             base.Update(gameTime);
-
-            for (var i = 0; i < _projectiles.Count; i++)
-            {
-                _projectiles[i].Update(gameTime);
-                if (_projectiles[i].Subject == ProjectileSubject.FromEnemy && _projectiles[i].BoundingBox.Intersects(_player.BoundingRectangle))
-                    _player.ReceiveAttack(_projectiles[i].Damage, _projectiles[i].LastPosition);
-
-                if (_projectiles[i].RequestErase)
-                {
-                    if (_projectiles[i].RequestParticles)
-                    {
-                        var spriteBr = _projectiles[i].Sprite.BoundingRectangle;
-                        var particlePosition = new Vector2((int)spriteBr.Center.X, (int)spriteBr.Center.Y);
-                        _snowballDestroyParticleEffect.Trigger(particlePosition);
-                    }
-                    _projectiles.Remove(_projectiles[i]);
-                }
-            }
-
+            
             DebugValues["Delta Time"] = gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
             DebugValues["Player Frame List"] = _player.CharacterSprite.CurrentFrameList.ToString();
         }
 
-        private void UpdateEnemies(GameTime gameTime)
+        private void UpdateProjectiles(GameTime gameTime)
+        {
+            var toRemove = new List<GameProjectile>();
+            foreach (var projectile in _projectiles)
+            {
+                projectile.Update(gameTime);
+
+                if (projectile.RequestErase)
+                {
+                    if (projectile.RequestParticles)
+                    {
+                        var spriteBr = projectile.Sprite.BoundingRectangle;
+                        var particlePosition = new Vector2(spriteBr.Center.X, spriteBr.Center.Y);
+                        _snowballDestroyParticleEffect.Trigger(particlePosition);
+                    }
+                    toRemove.Add(projectile);
+                }
+            }
+            toRemove.ForEach(projectile => _projectiles.Remove(projectile));
+            toRemove.Clear();
+        }
+
+        private void UpdateEnemiesSpawn(GameTime gameTime)
         {
             _enemiesSpawnManager.Update(gameTime);
             while (_enemiesSpawnManager.Queue.Count > 0)
             {
-                var model = _enemiesSpawnManager.ShiftModel();
+                var model = _enemiesSpawnManager.ShiftModelFromQueue();
                 var enemyName = _enemiesNames[model.Type];
                 var texture = ImageManager.loadCharacter(enemyName);
                 var enemy = (EnemyBase)Activator.CreateInstance(Type.GetType("Winter_Defense.Characters." + enemyName), texture);
-                var x = model.Side == 0 ? 16 : MapManager.Instance.MapWidth - 16;
-                var y = MapManager.Instance.MapHeight - 32;
+                var halfTile = MapManager.Instance.TileSize.X / 2;
+                var x = model.Side == 0 ? halfTile : MapManager.Instance.MapWidth - halfTile;
+                var y = MapManager.Instance.MapHeight - MapManager.Instance.TileSize.Y;
                 enemy.SetPositionFromGround(new Vector2(x, y));
                 _enemies.Add(enemy);
             }
+        }
+
+        private void UpdateEnemies(GameTime gameTime)
+        {
+            var toRemove = new List<EnemyBase>();
             foreach (var enemy in _enemies)
             {
                 enemy.Update(gameTime);
+                foreach (var projectile in _projectiles)
+                {
+                    if (projectile.BoundingBox.Intersects(enemy.BoundingRectangle))
+                    {
+                        enemy.ReceiveAttack(1, projectile.LastPosition);
+                        projectile.Destroy(true);
+                    }
+                }
+                if (enemy.RequestErase)
+                    toRemove.Add(enemy);
+            }
+            toRemove.ForEach(enemy => _enemies.Remove(enemy));
+            toRemove.Clear();
+        }
+
+        private void UpdateWave(GameTime gameTime)
+        {
+            if (_waveInterval)
+            {
+                _waveIntervalTick -= (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (_waveIntervalTick <= 0.0f)
+                {
+                    _waveInterval = false;
+                    _enemiesSpawnManager.StartNextWave();
+                }
+            }
+            else
+            {
+                if (_enemies.Count == 0 && _enemiesSpawnManager.WaveCompleted)
+                {
+                    _waveInterval = true;
+                    _waveIntervalTick = 5000.0f;
+                }
             }
         }
 

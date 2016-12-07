@@ -53,6 +53,7 @@ namespace Winter_Defense.Managers
         // Waves
 
         private int _currentWave;
+        public int CurrentWave => _currentWave;
         private bool _waveCompleted;
         public bool WaveCompleted => _waveCompleted;
 

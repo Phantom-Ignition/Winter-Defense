@@ -37,6 +37,9 @@ namespace Winter_Defense.Characters
         protected float _viewRangeCooldown;
         public float ViewRangeCooldown => _viewRangeCooldown;
 
+        protected bool _active;
+        public bool Active => _active;
+
         //--------------------------------------------------
         // Textures
 
@@ -51,6 +54,7 @@ namespace Winter_Defense.Characters
 
         public EnemyBase(Texture2D texture) : base(texture)
         {
+            _active = true;
             _viewRangeTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             _viewRangeTexture.SetData(new Color[] { Color.Green });
             _lastPosition = Position;
@@ -76,6 +80,8 @@ namespace Winter_Defense.Characters
         }
 
         public virtual void PlayerOnSight(Vector2 playerPosition) { }
+
+        public virtual void OnAttack() { }
 
         public override void Update(GameTime gameTime)
         {

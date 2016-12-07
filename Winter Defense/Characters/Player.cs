@@ -40,11 +40,19 @@ namespace Winter_Defense.Characters
         private bool _recharging;
 
         //--------------------------------------------------
+        // Ammo
+
+        private const int MaxAmmo = 6;
+        private int _ammo;
+        public int Ammo => _ammo;
+
+        //--------------------------------------------------
         // Particle Effects
 
         private List<ParticleEffect> _particleEffects;
 
         private ParticleEffect _shotParticleEffect;
+        private ParticleEffect _emptyShotParticleEffect;
         private ParticleEffect _rechargingParticleEffect;
         private ParticleEffect _walkParticleEffect;
         private ParticleEffect _groundImpactParticleEffect;
@@ -138,6 +146,8 @@ namespace Winter_Defense.Characters
                 "attack_shot"
             };
             AttackCooldown = 300f;
+
+            _ammo = MaxAmmo;
 
             // Particles init
             var particleTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
@@ -244,6 +254,31 @@ namespace Winter_Defense.Characters
                     }
                 }
             };
+            var emptyShotProfile = Profile.Spray(new Vector2(1, 0), (float)Math.PI / 3.5f);
+            _emptyShotParticleEffect = new ParticleEffect
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 50, TimeSpan.FromSeconds(1), shotProfile, false)
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(10f, 40f),
+                            Quantity = new Range<int>(5, 10),
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(2f, 5f),
+                            Color = new HslColor(0.0f, 0.0f, 0.8f)
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 10f },
+                            new RotationModifier { RotationRate = 0.5f },
+                            new OpacityFastFadeModifier(),
+                            new MapContainerModifier { RestitutionCoefficient = 0.3f }
+                        }
+                    }
+                }
+            };
             var rechargingProfile = Profile.Line(new Vector2(-1, -1), 5.0f);
             _rechargingParticleEffect = new ParticleEffect
             {
@@ -319,7 +354,7 @@ namespace Winter_Defense.Characters
             _particleEffects = new List<ParticleEffect>();
             _particleEffects.AddRange(new List<ParticleEffect>
             {
-                _shotParticleEffect, _shotParticleEffect, _rechargingParticleEffect, _walkParticleEffect,
+                _shotParticleEffect, _emptyShotParticleEffect, _rechargingParticleEffect, _walkParticleEffect,
                 _groundImpactParticleEffect
             });
         }
@@ -341,8 +376,7 @@ namespace Winter_Defense.Characters
             UpdateSprites(gameTime, isOnGroundBefore);
             UpdateParticles(deltaTime);
 
-            if (InputManager.Instace.KeyDown(Keys.P))
-                _rechargingParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
+           // if (InputManager.Instace.KeyDown(Keys.P)) _rechargingParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
         }
 
         private void UpdateSprites(GameTime gameTime, bool isOnGroundBefore)
@@ -477,6 +511,13 @@ namespace Winter_Defense.Characters
 
             // Recharging
             _recharging = _isOnGround && InputManager.Instace.KeyDown(Keys.X);
+            if (_recharging)
+            {
+                if (CharacterSprite.CurrentFrame == 0)
+                    TriggerRechargingParticles();
+                else if (CharacterSprite.CurrentFrame == 2)
+                    _ammo = _ammo + 1 > MaxAmmo ? MaxAmmo : _ammo + 1;
+            }
             if (_recharging && CharacterSprite.CurrentFrame == 0)
             {
                 TriggerRechargingParticles();
@@ -502,8 +543,15 @@ namespace Winter_Defense.Characters
                 position += new Vector2(25, 12);
             }
 
-            var sign = Math.Sign(dx);
             var particlePosition = new Vector2(position.X + 5, position.Y + 5);
+            var sign = Math.Sign(dx);
+
+            if (_ammo <= 0)
+            {
+                TriggerEmptyShotParticles(new Vector2(sign, 0), particlePosition);
+                return;
+            }
+            _ammo--;
             TriggerShotParticles(new Vector2(sign, 0), particlePosition);
             _knockbackAcceleration = 3800.0f * -sign;
             ((SceneMap)SceneManager.Instance.GetCurrentScene()).CreateProjectile("snowball", position, dx, 0, damage, ProjectileSubject.FromPlayer);
@@ -514,6 +562,13 @@ namespace Winter_Defense.Characters
             var profile = (SprayProfile)_shotParticleEffect.Emitters[0].Profile;
             profile.Direction = direction;
             _shotParticleEffect.Trigger(position);
+        }
+
+        private void TriggerEmptyShotParticles(Vector2 direction, Vector2 position)
+        {
+            var profile = (SprayProfile)_shotParticleEffect.Emitters[0].Profile;
+            profile.Direction = direction;
+            _emptyShotParticleEffect.Trigger(position);
         }
 
         private void TriggerRechargingParticles()

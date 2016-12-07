@@ -14,6 +14,7 @@ using MonoGame.Extended.TextureAtlases;
 using MonoGame.Extended.Particles.Profiles;
 using MonoGame.Extended.Particles.Modifiers;
 using Winter_Defense.Particles;
+using Microsoft.Xna.Framework.Input;
 
 namespace Winter_Defense.Scenes
 {
@@ -82,6 +83,7 @@ namespace Winter_Defense.Scenes
 
         private bool _waveInterval;
         private float _waveIntervalTick;
+        private ParticleEffect _explosionParticleEffect;
 
         //----------------------//------------------------//
 
@@ -198,9 +200,35 @@ namespace Winter_Defense.Scenes
                     }
                 }
             };
+            var profile = Profile.Spray(Vector2.One, (float)Math.PI * 2);
+            _explosionParticleEffect = new ParticleEffect()
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 50, TimeSpan.FromMilliseconds(1500.0f), profile, false)
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(40f, 100f),
+                            Quantity = 20,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(1f, 4.5f),
+                            Color = new HslColor(208.0f, 0.59f, 0.56f)
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 90f },
+                            new RotationModifier { RotationRate = 1f },
+                            new OpacityFastFadeModifier(),
+                            new MapContainerModifier { RestitutionCoefficient = 0.6f }
+                        }
+                    }
+                }
+            };
             _particleEffects = new List<ParticleEffect>();
             _particleEffects.Add(_blizzardParticleEffect);
             _particleEffects.Add(_snowballDestroyParticleEffect);
+            _particleEffects.Add(_explosionParticleEffect);
         }
 
         private void LoadMap(int mapId)
@@ -240,6 +268,9 @@ namespace Winter_Defense.Scenes
             UpdateWave(gameTime);
             UpdateHud(gameTime);
             UpdateCamera();
+
+            if (InputManager.Instace.KeyPressed(Keys.P))
+                _explosionParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
 
             base.Update(gameTime);
             
@@ -298,16 +329,23 @@ namespace Winter_Defense.Scenes
             foreach (var enemy in _enemies)
             {
                 enemy.Update(gameTime);
-                foreach (var projectile in _projectiles)
+                if (enemy.Active)
                 {
-                    if (projectile.BoundingBox.Intersects(enemy.BoundingRectangle))
+                    foreach (var projectile in _projectiles)
                     {
-                        enemy.ReceiveAttack(1, projectile.LastPosition);
-                        projectile.Destroy(true);
+                        if (projectile.BoundingBox.Intersects(enemy.BoundingRectangle))
+                        {
+                            enemy.ReceiveAttack(1, projectile.LastPosition);
+                            projectile.Destroy(true);
+                        }
+                    }
+
+                    if (enemy.BoundingRectangle.Intersects(_crystal.BoudingBox))
+                    {
+                        _crystal.OnDamage();
+                        enemy.OnAttack();
                     }
                 }
-                if (enemy.BoundingRectangle.Intersects(_crystal.BoudingBox))
-                    _crystal.OnDamage();
                 if (enemy.RequestErase)
                     toRemove.Add(enemy);
             }
@@ -338,6 +376,7 @@ namespace Winter_Defense.Scenes
 
         private void UpdateHud(GameTime gameTime)
         {
+            _gameHud.SetData(_crystal.Lives, _player.Ammo, _enemiesSpawnManager.CurrentWave);
             _gameHud.Update(gameTime);
         }
 
@@ -390,8 +429,7 @@ namespace Winter_Defense.Scenes
             }
 
             // Draw the particles
-            spriteBatch.Draw(_snowballDestroyParticleEffect);
-            spriteBatch.Draw(_blizzardParticleEffect);
+            _particleEffects.ForEach(particle => spriteBatch.Draw(particle));
 
             spriteBatch.End();
 

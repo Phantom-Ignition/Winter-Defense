@@ -39,6 +39,7 @@ namespace Winter_Defense.Objects
         // Lives
 
         private int _lives;
+        public int Lives => _lives;
 
         //--------------------------------------------------
         // Bouding Box

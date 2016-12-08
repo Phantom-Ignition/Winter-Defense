@@ -257,10 +257,9 @@ namespace Winter_Defense.Scenes
         public override void Update(GameTime gameTime)
         {
             var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-            _crystal.Update(gameTime);
+            
             _player.Update(gameTime);
-
+            UpdateCrystal(gameTime);
             UpdateParticles(deltaTime);
             UpdateProjectiles(gameTime);
             UpdateEnemiesSpawn(gameTime);
@@ -276,6 +275,15 @@ namespace Winter_Defense.Scenes
             
             DebugValues["Delta Time"] = gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
             DebugValues["Player Frame List"] = _player.CharacterSprite.CurrentFrameList.ToString();
+        }
+
+        private void UpdateCrystal(GameTime gameTime)
+        {
+            _crystal.Update(gameTime);
+            if (_crystal.Lives == 0)
+            {
+                SceneManager.Instance.ChangeScene("SceneGameover");
+            }
         }
 
         private void UpdateParticles(float deltaTime)

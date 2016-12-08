@@ -67,7 +67,7 @@ namespace Winter_Defense.Managers
 
         private SceneManager()
         {
-            _currentScene = new SceneMap();
+            _currentScene = new SceneTitle();
         }
 
         public void RequestExit()

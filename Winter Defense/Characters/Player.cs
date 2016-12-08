@@ -376,8 +376,6 @@ namespace Winter_Defense.Characters
             base.Update(gameTime);
             UpdateSprites(gameTime, isOnGroundBefore);
             UpdateParticles(deltaTime);
-
-            // if (InputManager.Instace.KeyDown(Keys.P)) _rechargingParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
         }
 
         private void UpdateSprites(GameTime gameTime, bool isOnGroundBefore)
@@ -392,7 +390,7 @@ namespace Winter_Defense.Characters
             {
                 _groundImpact = false;
             }
-            if ((!_recharging && _recharged) || (_recharging && CharacterSprite.Looped))
+            if (!_recharging && _recharged)
             {
                 _recharged = false;
             }
@@ -518,12 +516,20 @@ namespace Winter_Defense.Characters
             _recharging = _isOnGround && InputManager.Instace.KeyDown(Keys.X);
             if (_recharging)
             {
+                if (CharacterSprite.CurrentFrame != 2)
+                {
+                    _recharged = false;
+                }
+
                 if (CharacterSprite.CurrentFrame == 0)
+                {
                     TriggerRechargingParticles();
+                }
                 else if (CharacterSprite.CurrentFrame == 2 && !_recharged)
                 {
                     _recharged = true;
-                    _ammo = _ammo + 1 > MaxAmmo ? MaxAmmo : _ammo + 1;
+                    var newAmmo = _ammo + 3;
+                    _ammo = MathHelper.Clamp(newAmmo, 0, MaxAmmo);
                 }
             }
             if (_recharging && CharacterSprite.CurrentFrame == 0)

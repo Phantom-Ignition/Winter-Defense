@@ -49,6 +49,18 @@ namespace Winter_Defense.Objects
 
         private Texture2D _colliderTexture;
 
+        //--------------------------------------------------
+        // Dying
+
+        private bool _dying;
+        public bool Dying => _dying;
+
+        //--------------------------------------------------
+        // Request Erase
+
+        private bool _requestErase;
+        private bool RequestErase => _requestErase;
+
         //----------------------//------------------------//
 
         public GameCrystal(Vector2 position, Texture2D texture)

@@ -82,9 +82,10 @@ namespace Winter_Defense.Objects
         public bool RequestParticles { get; set; }
 
         //--------------------------------------------------
-        // Random
+        // Active
 
-        protected Random _rand;
+        private bool _active;
+        public bool Active => _active;
 
         //--------------------------------------------------
         // Bouding box
@@ -109,7 +110,7 @@ namespace Winter_Defense.Objects
             _acceleration = new Vector2(dx, dy);
             _damage = damage;
             _subject = subject;
-            _rand = new Random();
+            _active = true;
         }
 
         public void Update(GameTime gameTime)
@@ -140,6 +141,7 @@ namespace Winter_Defense.Objects
 
         public void Destroy(bool showParticles)
         {
+            _active = false;
             Sprite.Alpha = 0.0f;
             RequestErase = true;
             RequestParticles = showParticles;

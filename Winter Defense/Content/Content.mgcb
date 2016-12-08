@@ -115,42 +115,6 @@
 /processorParam:TextureFormat=Color
 /build:imgs/characters/Ghost.png
 
-#begin imgs/characters/FireGhost.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:imgs/characters/FireGhost.png
-
-#begin imgs/characters/PlantGhost.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:imgs/characters/PlantGhost.png
-
-#begin imgs/characters/TrueGhost.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:imgs/characters/TrueGhost.png
-
 #begin imgs/scenes/sceneMap/HudBackground.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -227,4 +191,16 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:imgs/scenes/sceneGameover/Background.png
+
+#begin imgs/characters/Bird.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:imgs/characters/Bird.png
 

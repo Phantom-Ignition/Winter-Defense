@@ -1,7 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
+using MonoGame.Extended.Particles;
+using MonoGame.Extended.Particles.Modifiers;
+using MonoGame.Extended.Particles.Profiles;
+using MonoGame.Extended.TextureAtlases;
 using System;
+using Winter_Defense.Extensions;
 using Winter_Defense.Managers;
+using Winter_Defense.Particles;
 
 namespace Winter_Defense.Characters
 {
@@ -12,10 +19,7 @@ namespace Winter_Defense.Characters
     {
         None,
         Ghost,
-        FireGhost,
-        PlantGhost,
-        TrueGhost,
-        Boss
+        Bird
     }
 
     class EnemyBase : CharacterBase
@@ -26,51 +30,68 @@ namespace Winter_Defense.Characters
         protected EnemyType _enemyType;
         public EnemyType EnemyType => _enemyType;
 
-        protected Rectangle _viewRange;
-        public Rectangle ViewRange => _viewRange;
-        protected Vector2 _viewRangeOffset;
-        protected Vector2 _viewRangeSize;
-        private Vector2 _lastPosition;
-
-        private bool _hasViewRange;
-        public bool HasViewRange => _hasViewRange;
-        protected float _viewRangeCooldown;
-        public float ViewRangeCooldown => _viewRangeCooldown;
-
         protected bool _active;
         public bool Active => _active;
-
-        //--------------------------------------------------
-        // Textures
-
-        private Texture2D _viewRangeTexture;
 
         //--------------------------------------------------
         // Crystal Position X
 
         private float _crystalPositionX;
 
+        //--------------------------------------------------
+        // Floating position
+
+        private Vector2 _floatPosition;
+
+        //--------------------------------------------------
+        // Explosion
+
+        private bool _exploding;
+        private float _explodingEraseInterval;
+        private const float ExplodingEraseMaxInterval = 1500.0f;
+        private ParticleEffect _explosionParticleEffect;
+
         //----------------------//------------------------//
 
         public EnemyBase(Texture2D texture) : base(texture)
         {
             _active = true;
-            _viewRangeTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-            _viewRangeTexture.SetData(new Color[] { Color.Green });
-            _lastPosition = Position;
             _enemyType = EnemyType.None;
-            _hasViewRange = false;
-            _viewRangeCooldown = 0f;
-            _viewRangeOffset = Vector2.Zero;
             _crystalPositionX = SceneManager.Instance.VirtualSize.X / 2;
+            
+            // Particles init
+            var particleTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
+            particleTexture.SetData(new[] { Color.White });
+            ParticlesInit(new TextureRegion2D(particleTexture));
         }
 
-        public void CreateViewRange()
+        private void ParticlesInit(TextureRegion2D textureRegion)
         {
-            var width = ((int)_viewRangeSize.X + CharacterSprite.Collider.BoundingBox.Width / 2) * 2;
-            var height = (int)_viewRangeSize.Y;
-            _viewRange = new Rectangle(0, 0, width, height);
-            _hasViewRange = true;
+            var profile = Profile.Spray(Vector2.One, (float)Math.PI * 2);
+            _explosionParticleEffect = new ParticleEffect()
+            {
+                Emitters = new[]
+                {
+                    new ParticleEmitter(textureRegion, 30, TimeSpan.FromMilliseconds(ExplodingEraseMaxInterval), profile, false)
+                    {
+                        Parameters = new ParticleReleaseParameters
+                        {
+                            Speed = new Range<float>(40f, 120f),
+                            Quantity = 30,
+                            Rotation = new Range<float>(-1f, 1f),
+                            Scale = new Range<float>(1f, 4.5f),
+                            Color = new HslColor(208.0f, 0.59f, 0.56f)
+                        },
+                        Modifiers = new IModifier[]
+                        {
+                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 60f },
+                            new RotationModifier { RotationRate = 1f },
+                            new OpacityFastFadeModifier(),
+                            new MapContainerModifier { RestitutionCoefficient = 0.6f }
+                        }
+                    }
+                }
+            };
         }
 
         public void SetPositionFromGround(Vector2 position)
@@ -79,36 +100,40 @@ namespace Winter_Defense.Characters
                 position.Y - CharacterSprite.Collider.Height * 2);
         }
 
-        public virtual void PlayerOnSight(Vector2 playerPosition) { }
-
-        public virtual void OnAttack() { }
+        public void OnAttack()
+        {
+            _exploding = true;
+            _active = false;
+            _explosionParticleEffect.Trigger(BoundingRectangle.Center.ToVector2());
+            CharacterSprite.Alpha = 0.0f;
+        }
 
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
-            if (_lastPosition.X != CharacterSprite.Collider.BoundingBox.X ||
-                _lastPosition.Y != CharacterSprite.Collider.BoundingBox.Y)
-                UpdateViewRange();
 
             UpdateMovement();
-
             CharacterSprite.Effect = _velocity.X > 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 
-            UpdateViewRangeCooldown(gameTime);
+            if (_exploding)
+            {
+                var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                _explosionParticleEffect.Update(deltaTime);
+
+                _explodingEraseInterval += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                _requestErase = _explodingEraseInterval >= ExplodingEraseMaxInterval;
+                return;
+            }
         }
 
-        private void UpdateViewRangeCooldown(GameTime gameTime)
+        protected override void UpdateSprite(GameTime gameTime)
         {
-            if (_viewRangeCooldown > 0f)
-                _viewRangeCooldown -= (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-        }
+            var deltaTime = (float)gameTime.TotalGameTime.TotalMilliseconds / 3;
 
-        public void UpdateViewRange()
-        {
-            _viewRange.X = (CharacterSprite.Collider.BoundingBox.Center.X - _viewRange.Width / 2) + (int)_viewRangeOffset.X;
-            _viewRange.Y = (CharacterSprite.Collider.BoundingBox.Y) + (int)_viewRangeOffset.Y;
-            _lastPosition.X = CharacterSprite.Collider.BoundingBox.X;
-            _lastPosition.Y = CharacterSprite.Collider.BoundingBox.Y;
+            _floatPosition.Y = (float)MathUtils.SinInterpolation(-2, 2, deltaTime);
+            CharacterSprite.Offset = _floatPosition;
+
+            base.UpdateSprite(gameTime);
         }
 
         private void UpdateMovement()
@@ -116,15 +141,10 @@ namespace Winter_Defense.Characters
             _movement = Math.Sign(_crystalPositionX - _position.X);
         }
 
-        public override void DrawColliderBox(SpriteBatch spriteBatch)
+        public override void DrawCharacter(SpriteBatch spriteBatch)
         {
-            base.DrawColliderBox(spriteBatch);
-            DrawViewRange(spriteBatch);
-        }
-
-        private void DrawViewRange(SpriteBatch spriteBatch)
-        {
-            spriteBatch.Draw(_viewRangeTexture, _viewRange, Color.White * 0.2f);
+            base.DrawCharacter(spriteBatch);
+            spriteBatch.Draw(_explosionParticleEffect);
         }
     }
 }

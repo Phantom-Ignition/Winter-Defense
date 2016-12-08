@@ -118,9 +118,7 @@ namespace Winter_Defense.Scenes
             _enemiesNames = new Dictionary<EnemyType, string>
             {
                 { EnemyType.Ghost, "Ghost" },
-                { EnemyType.FireGhost, "FireGhost" },
-                { EnemyType.PlantGhost, "PlantGhost" },
-                { EnemyType.TrueGhost, "TrueGhost" },
+                { EnemyType.Bird, "Bird" }
             };
 
             // Background init
@@ -257,9 +255,10 @@ namespace Winter_Defense.Scenes
         public override void Update(GameTime gameTime)
         {
             var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            
-            _player.Update(gameTime);
+
             UpdateCrystal(gameTime);
+            if (_crystal.Breaking) return;
+            _player.Update(gameTime);
             UpdateParticles(deltaTime);
             UpdateProjectiles(gameTime);
             UpdateEnemiesSpawn(gameTime);
@@ -274,7 +273,10 @@ namespace Winter_Defense.Scenes
             base.Update(gameTime);
             
             DebugValues["Delta Time"] = gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
+            var s = _enemies.Count > 0 ? _enemies[0].CharacterSprite.CurrentFrameList.ToString() : "";
+            DebugValues["Enemy Frame List"] = s;
             DebugValues["Player Frame List"] = _player.CharacterSprite.CurrentFrameList.ToString();
+            DebugValues["Spawn Time"] = _enemiesSpawnManager.SpawnInterval.ToString();
         }
 
         private void UpdateCrystal(GameTime gameTime)
@@ -326,6 +328,7 @@ namespace Winter_Defense.Scenes
                 var halfTile = MapManager.Instance.TileSize.X / 2;
                 var x = model.Side == 0 ? halfTile : MapManager.Instance.MapWidth - halfTile;
                 var y = MapManager.Instance.MapHeight - MapManager.Instance.TileSize.Y;
+                if (model.Type == EnemyType.Bird) y += 32;
                 enemy.SetPositionFromGround(new Vector2(x, y));
                 _enemies.Add(enemy);
             }
@@ -341,7 +344,7 @@ namespace Winter_Defense.Scenes
                 {
                     foreach (var projectile in _projectiles)
                     {
-                        if (projectile.BoundingBox.Intersects(enemy.BoundingRectangle))
+                        if (projectile.Active && projectile.BoundingBox.Intersects(enemy.BoundingRectangle))
                         {
                             enemy.ReceiveAttack(1, projectile.LastPosition);
                             projectile.Destroy(true);
@@ -377,7 +380,7 @@ namespace Winter_Defense.Scenes
                 if (_enemies.Count == 0 && _enemiesSpawnManager.WaveCompleted)
                 {
                     _waveInterval = true;
-                    _waveIntervalTick = 5000.0f;
+                    _waveIntervalTick = 2000.0f;
                 }
             }
         }

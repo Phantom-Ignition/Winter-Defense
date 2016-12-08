@@ -257,7 +257,7 @@ namespace Winter_Defense.Scenes
             var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             UpdateCrystal(gameTime);
-            if (_crystal.Breaking) return;
+            if (_crystal.Dying) return;
             _player.Update(gameTime);
             UpdateParticles(deltaTime);
             UpdateProjectiles(gameTime);
@@ -282,7 +282,7 @@ namespace Winter_Defense.Scenes
         private void UpdateCrystal(GameTime gameTime)
         {
             _crystal.Update(gameTime);
-            if (_crystal.Lives == 0)
+            if (_crystal.RequestErase)
             {
                 SceneManager.Instance.ChangeScene("SceneGameover");
             }

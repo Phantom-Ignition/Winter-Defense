@@ -59,7 +59,7 @@ namespace Winter_Defense.Objects
         // Request Erase
 
         private bool _requestErase;
-        private bool RequestErase => _requestErase;
+        public bool RequestErase => _requestErase;
 
         //----------------------//------------------------//
 
@@ -86,6 +86,14 @@ namespace Winter_Defense.Objects
         {
             var deltaTime = (float)gameTime.TotalGameTime.TotalMilliseconds / 20;
             _crystalPosition.Y = (int)MathUtils.SinInterpolation(_position.Y - 3, _position.Y + 5, deltaTime);
+
+            if (_dying)
+            {
+                _alpha -= (float)gameTime.ElapsedGameTime.TotalSeconds / 3;
+                _requestErase = _alpha <= 0.0f;
+                return;
+            }
+
             UpdateImmunityAnimation(gameTime);
         }
 
@@ -93,6 +101,10 @@ namespace Winter_Defense.Objects
         {
             _immunityAnimation = true;
             _lives--;
+            if (_lives <= 0)
+            {
+                _dying = true;
+            }
         }
 
         private void UpdateImmunityAnimation(GameTime gameTime)

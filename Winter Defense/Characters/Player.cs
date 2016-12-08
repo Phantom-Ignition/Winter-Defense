@@ -38,6 +38,7 @@ namespace Winter_Defense.Characters
         // Recharging
 
         private bool _recharging;
+        private bool _recharged;
 
         //--------------------------------------------------
         // Ammo
@@ -94,7 +95,7 @@ namespace Winter_Defense.Characters
                 new Rectangle(0, 128, 32, 32),
                 new Rectangle(32, 128, 32, 32)
             });
-            
+
             // Jumping apex
             CharacterSprite.CreateFrameList("jumping_apex", 120, false);
             CharacterSprite.AddCollider("jumping_apex", new Rectangle(6, 2, 16, 30));
@@ -376,7 +377,7 @@ namespace Winter_Defense.Characters
             UpdateSprites(gameTime, isOnGroundBefore);
             UpdateParticles(deltaTime);
 
-           // if (InputManager.Instace.KeyDown(Keys.P)) _rechargingParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
+            // if (InputManager.Instace.KeyDown(Keys.P)) _rechargingParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
         }
 
         private void UpdateSprites(GameTime gameTime, bool isOnGroundBefore)
@@ -390,6 +391,10 @@ namespace Winter_Defense.Characters
             if (_groundImpact && CharacterSprite.Looped)
             {
                 _groundImpact = false;
+            }
+            if ((!_recharging && _recharged) || (_recharging && CharacterSprite.Looped))
+            {
+                _recharged = false;
             }
         }
 
@@ -515,8 +520,11 @@ namespace Winter_Defense.Characters
             {
                 if (CharacterSprite.CurrentFrame == 0)
                     TriggerRechargingParticles();
-                else if (CharacterSprite.CurrentFrame == 2)
+                else if (CharacterSprite.CurrentFrame == 2 && !_recharged)
+                {
+                    _recharged = true;
                     _ammo = _ammo + 1 > MaxAmmo ? MaxAmmo : _ammo + 1;
+                }
             }
             if (_recharging && CharacterSprite.CurrentFrame == 0)
             {

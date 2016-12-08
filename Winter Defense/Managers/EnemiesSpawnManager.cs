@@ -150,6 +150,7 @@ namespace Winter_Defense.Managers
         {
             _currentWave++;
             _active = true;
+            _waveCompleted = false;
         }
 
         public EnemyModel ShiftModelFromQueue()
@@ -209,7 +210,7 @@ namespace Winter_Defense.Managers
                 GenerateWave();
             }
         }
-
+        
         private EnemyType GetNextWaveEnemy()
         {
             var enemy = _waveSpawnQueue[0];

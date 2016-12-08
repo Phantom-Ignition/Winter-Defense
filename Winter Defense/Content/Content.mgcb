@@ -175,3 +175,20 @@
 /processorParam:TextureFormat=Color
 /build:imgs/scenes/sceneMap/HudItems.png
 
+#begin fonts/SneakAttack.fnt
+/importer:BitmapFontImporter
+/processor:BitmapFontProcessor
+/build:fonts/SneakAttack.fnt
+
+#begin fonts/SneakAttack_0.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:fonts/SneakAttack_0.png
+

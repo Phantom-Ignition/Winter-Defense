@@ -15,6 +15,7 @@ using MonoGame.Extended.Particles.Profiles;
 using MonoGame.Extended.Particles.Modifiers;
 using Winter_Defense.Particles;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.BitmapFonts;
 
 namespace Winter_Defense.Scenes
 {
@@ -83,14 +84,18 @@ namespace Winter_Defense.Scenes
 
         private bool _waveInterval;
         private float _waveIntervalTick;
-        private ParticleEffect _explosionParticleEffect;
+
+        //--------------------------------------------------
+        // Wave Clear Text
+
+        private const string WaveClearText = "Wave Clear!";
+        private int _waveClearPhase;
+        private float _waveClearTick;
+        private Vector2 _waveClearInitialPosition;
+        private Vector2 _waveClearPosition;
+        private float _waveClearAlpha;
 
         //----------------------//------------------------//
-
-        public Camera2D GetCamera()
-        {
-            return _camera;
-        }
 
         public override void LoadContent()
         {
@@ -132,7 +137,7 @@ namespace Winter_Defense.Scenes
             particleTexture.SetData(new[] { Color.White });
             ParticlesInit(new TextureRegion2D(particleTexture));
 
-            _blizzardTriggerPosition = new Vector2(SceneManager.Instance.VirtualSize.X / 2 - 50.0f, -50.0f);
+            _blizzardTriggerPosition = new Vector2(viewportSize.X / 2 - 50.0f, -50.0f);
 
             // Spawn Manager init
             _enemiesSpawnManager = new EnemiesSpawnManager();
@@ -145,6 +150,12 @@ namespace Winter_Defense.Scenes
             var mapSize = new Vector2(MapManager.Instance.MapWidth, MapManager.Instance.MapHeight);
             var crystalPosition = new Vector2(mapSize.X / 2 - 48, 96);
             _crystal = new GameCrystal(crystalPosition, ImageManager.loadCharacter("Crystal"));
+
+            // Wave Clear init
+            var textWidth = SceneManager.Instance.GameFontBig.MeasureString(WaveClearText).Width;
+            var x = (viewportSize.X - textWidth) / 2;
+            _waveClearInitialPosition = new Vector2(x, viewportSize.Y / 2 - 70);
+            _waveClearPosition = _waveClearInitialPosition;
         }
 
         private void ParticlesInit(TextureRegion2D textureRegion)
@@ -198,35 +209,9 @@ namespace Winter_Defense.Scenes
                     }
                 }
             };
-            var profile = Profile.Spray(Vector2.One, (float)Math.PI * 2);
-            _explosionParticleEffect = new ParticleEffect()
-            {
-                Emitters = new[]
-                {
-                    new ParticleEmitter(textureRegion, 50, TimeSpan.FromMilliseconds(1500.0f), profile, false)
-                    {
-                        Parameters = new ParticleReleaseParameters
-                        {
-                            Speed = new Range<float>(40f, 100f),
-                            Quantity = 20,
-                            Rotation = new Range<float>(-1f, 1f),
-                            Scale = new Range<float>(1f, 4.5f),
-                            Color = new HslColor(208.0f, 0.59f, 0.56f)
-                        },
-                        Modifiers = new IModifier[]
-                        {
-                            new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 90f },
-                            new RotationModifier { RotationRate = 1f },
-                            new OpacityFastFadeModifier(),
-                            new MapContainerModifier { RestitutionCoefficient = 0.6f }
-                        }
-                    }
-                }
-            };
             _particleEffects = new List<ParticleEffect>();
             _particleEffects.Add(_blizzardParticleEffect);
             _particleEffects.Add(_snowballDestroyParticleEffect);
-            _particleEffects.Add(_explosionParticleEffect);
         }
 
         private void LoadMap(int mapId)
@@ -267,14 +252,9 @@ namespace Winter_Defense.Scenes
             UpdateHud(gameTime);
             UpdateCamera();
 
-            if (InputManager.Instace.KeyPressed(Keys.P))
-                _explosionParticleEffect.Trigger(SceneManager.Instance.VirtualSize / 2);
-
             base.Update(gameTime);
             
             DebugValues["Delta Time"] = gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
-            var s = _enemies.Count > 0 ? _enemies[0].CharacterSprite.CurrentFrameList.ToString() : "";
-            DebugValues["Enemy Frame List"] = s;
             DebugValues["Player Frame List"] = _player.CharacterSprite.CurrentFrameList.ToString();
             DebugValues["Spawn Time"] = _enemiesSpawnManager.SpawnInterval.ToString();
         }
@@ -368,6 +348,38 @@ namespace Winter_Defense.Scenes
         {
             if (_waveInterval)
             {
+                if (_waveClearPhase < 3)
+                {
+                    if (_waveClearPhase == 0)
+                    {
+                        _waveClearAlpha += (float)gameTime.ElapsedGameTime.TotalSeconds * 1.5f;
+                        _waveClearPosition.Y += (float)gameTime.ElapsedGameTime.TotalMilliseconds / 20;
+                        if (_waveClearAlpha >= 1.0f)
+                        {
+                            _waveClearPhase++;
+                            _waveClearTick = 1500.0f;
+                        }
+                    }
+                    else if (_waveClearPhase == 1)
+                    {
+                        _waveClearTick -= (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                        if (_waveClearTick <= 0.0f)
+                        {
+                            _waveClearPhase++;
+                        }
+                    }
+                    else if (_waveClearPhase == 2)
+                    {
+                        _waveClearAlpha -= (float)gameTime.ElapsedGameTime.TotalSeconds * 2.0f;
+                        _waveClearPosition.Y += (float)gameTime.ElapsedGameTime.TotalMilliseconds / 20;
+                        if (_waveClearAlpha <= 0.0f)
+                        {
+                            _waveClearPhase++;
+                        }
+                    }
+                    return;
+                }
+
                 _waveIntervalTick -= (float)gameTime.ElapsedGameTime.TotalMilliseconds;
                 if (_waveIntervalTick <= 0.0f)
                 {
@@ -380,7 +392,10 @@ namespace Winter_Defense.Scenes
                 if (_enemies.Count == 0 && _enemiesSpawnManager.WaveCompleted)
                 {
                     _waveInterval = true;
-                    _waveIntervalTick = 2000.0f;
+                    _waveIntervalTick = 1000.0f;
+                    _waveClearPhase = 0;
+                    _waveClearPosition = _waveClearInitialPosition;
+                    _waveClearAlpha = 0.0f;
                 }
             }
         }
@@ -444,9 +459,13 @@ namespace Winter_Defense.Scenes
 
             spriteBatch.End();
 
-            // Draw the HUD
+            // Draw the HUD and Wave Clear
             spriteBatch.Begin(transformMatrix: viewportAdapter.GetScaleMatrix(), samplerState: SamplerState.PointClamp);
+
+            spriteBatch.DrawString(SceneManager.Instance.GameFontBig, WaveClearText, _waveClearPosition + 1 * Vector2.UnitY, Color.Black * _waveClearAlpha);
+            spriteBatch.DrawString(SceneManager.Instance.GameFontBig, WaveClearText, _waveClearPosition, Color.White * _waveClearAlpha);
             _gameHud.Draw(spriteBatch);
+
             spriteBatch.End();
         }
     }

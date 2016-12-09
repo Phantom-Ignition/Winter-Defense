@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Winter_Defense.Extensions;
 using Winter_Defense.Managers;
@@ -61,6 +62,12 @@ namespace Winter_Defense.Objects
         private bool _requestErase;
         public bool RequestErase => _requestErase;
 
+        //--------------------------------------------------
+        // Sound Effects
+
+        private SoundEffect _hitSe;
+        private SoundEffect _glassSe;
+
         //----------------------//------------------------//
 
         public GameCrystal(Vector2 position, Texture2D texture)
@@ -80,6 +87,9 @@ namespace Winter_Defense.Objects
             _colliderTexture.SetData(new Color[] { Color.Blue });
 
             _lives = 5;
+
+            _hitSe = SoundManager.LoadSe("Hit");
+            _glassSe = SoundManager.LoadSe("Glass");
         }
 
         public void Update(GameTime gameTime)
@@ -99,11 +109,16 @@ namespace Winter_Defense.Objects
 
         public void OnDamage()
         {
-            _immunityAnimation = true;
-            _lives--;
-            if (_lives <= 0)
+            if (_lives > 0)
+            {
+                _immunityAnimation = true;
+                _lives--;
+                _hitSe.PlaySafe();
+            }
+            if (!_dying && _lives <= 0)
             {
                 _dying = true;
+                _glassSe.PlaySafe();
             }
         }
 

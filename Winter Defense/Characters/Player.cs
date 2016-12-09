@@ -14,6 +14,7 @@ using MonoGame.Extended.Particles.Profiles;
 using MonoGame.Extended;
 using MonoGame.Extended.Particles.Modifiers;
 using Winter_Defense.Particles;
+using Microsoft.Xna.Framework.Audio;
 
 namespace Winter_Defense.Characters
 {
@@ -63,6 +64,16 @@ namespace Winter_Defense.Characters
         // Keys locked (no movement)
 
         private bool _keysLocked;
+
+        //--------------------------------------------------
+        // Sound Effect
+
+        private SoundEffect _shotSe;
+        private SoundEffect _footstepSe;
+        private SoundEffect _vacuumSe;
+
+        private float _footstepCooldown;
+        private float _footstepTick;
 
         //----------------------//------------------------//
 
@@ -154,6 +165,11 @@ namespace Winter_Defense.Characters
             var particleTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
             particleTexture.SetData(new[] { Color.White });
             ParticlesInit(new TextureRegion2D(particleTexture));
+
+            // SEs init
+            _shotSe = SoundManager.LoadSe("Shot");
+            _footstepSe = SoundManager.LoadSe("Step");
+            _vacuumSe = SoundManager.LoadSe("Vacuum");
         }
 
         private void SetupBottomSprite(Texture2D texture)
@@ -373,6 +389,7 @@ namespace Winter_Defense.Characters
             var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             var isOnGroundBefore = _isOnGround;
             CheckKeys(gameTime);
+            UpdateFootsteps(gameTime);
             base.Update(gameTime);
             UpdateSprites(gameTime, isOnGroundBefore);
             UpdateParticles(deltaTime);
@@ -385,6 +402,8 @@ namespace Winter_Defense.Characters
             {
                 _groundImpact = true;
                 TriggerGroundImpactParticles();
+                _footstepSe.PlaySafe();
+                _footstepTick = 0.0f;
             }
             if (_groundImpact && CharacterSprite.Looped)
             {
@@ -530,11 +549,26 @@ namespace Winter_Defense.Characters
                     _recharged = true;
                     var newAmmo = _ammo + 3;
                     _ammo = MathHelper.Clamp(newAmmo, 0, MaxAmmo);
+                    _vacuumSe.PlaySafe();
                 }
             }
             if (_recharging && CharacterSprite.CurrentFrame == 0)
             {
                 TriggerRechargingParticles();
+            }
+        }
+
+        private void UpdateFootsteps(GameTime gameTime)
+        {
+            if (_movement != 0 && _isOnGround)
+            {
+                _footstepTick += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (_footstepTick >= _footstepCooldown)
+                {
+                    _footstepSe.PlaySafe();
+                    _footstepCooldown = _rand.NextSingle(250.0f, 320.0f);
+                    _footstepTick = 0.0f;
+                }
             }
         }
 
@@ -569,6 +603,7 @@ namespace Winter_Defense.Characters
             TriggerShotParticles(new Vector2(sign, 0), particlePosition);
             _knockbackAcceleration = 3800.0f * -sign;
             ((SceneMap)SceneManager.Instance.GetCurrentScene()).CreateProjectile("snowball", position, dx, 0, damage, ProjectileSubject.FromPlayer);
+            _shotSe.PlaySafe();
         }
 
         private void TriggerShotParticles(Vector2 direction, Vector2 position)

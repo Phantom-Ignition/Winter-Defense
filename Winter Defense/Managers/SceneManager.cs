@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Sprites;
 using MonoGame.Extended.ViewportAdapters;
+using MonoGame.Extended.BitmapFonts;
 
 namespace Winter_Defense.Managers
 {
@@ -59,6 +60,15 @@ namespace Winter_Defense.Managers
         private Action<int> _mapLoadCallback;
 
         //--------------------------------------------------
+        // Game font
+
+        private BitmapFont _gameFont;
+        public BitmapFont GameFont => _gameFont;
+
+        private BitmapFont _gameFontBig;
+        public BitmapFont GameFontBig => _gameFontBig;
+
+        //--------------------------------------------------
         // Debug mode
 
         public bool DebugMode { get; set; } = false;
@@ -84,17 +94,21 @@ namespace Winter_Defense.Managers
         {
             this.Content = new ContentManager(Content.ServiceProvider, "Content");
             var transitionTexture = new Texture2D(GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-            transitionTexture.SetData<Color>(new Color[] { Color.Black });
+            transitionTexture.SetData(new Color[] { Color.Black });
             _transitionImage = new Sprite(transitionTexture);
             _transitionImage.Scale = new Vector2(VirtualSize.X, VirtualSize.Y);
             _transitionImage.Alpha = 0.0f;
             _transitionImage.IsVisible = false;
+            _gameFont = Content.Load<BitmapFont>("fonts/SneakAttack");
+            _gameFontBig = Content.Load<BitmapFont>("fonts/SneakAttackBig");
+            SoundManager.Initialize();
             _currentScene.LoadContent();
         }
 
         public void UnloadContent()
         {
             _currentScene.UnloadContent();
+            SoundManager.Dispose();
         }
 
         public void Update(GameTime gameTime)

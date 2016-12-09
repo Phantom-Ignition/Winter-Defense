@@ -204,3 +204,74 @@
 /processorParam:TextureFormat=Color
 /build:imgs/characters/Bird.png
 
+#begin fonts/SneakAttackBig.fnt
+/importer:BitmapFontImporter
+/processor:BitmapFontProcessor
+/build:fonts/SneakAttackBig.fnt
+
+#begin fonts/SneakAttackBig_0.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:fonts/SneakAttackBig_0.png
+
+#begin fonts/SneakAttackBig_1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:fonts/SneakAttackBig_1.png
+
+#begin sounds/se/Ambience.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:sounds/se/Ambience.ogg
+
+#begin sounds/se/Glass.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:sounds/se/Glass.ogg
+
+#begin sounds/se/Hit.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:sounds/se/Hit.ogg
+
+#begin sounds/se/Shot.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:sounds/se/Shot.ogg
+
+#begin sounds/se/Vacuum.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:sounds/se/Vacuum.ogg
+
+#begin sounds/se/Confirm.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:sounds/se/Confirm.ogg
+
+#begin sounds/se/Footstep.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:sounds/se/Footstep.ogg
+

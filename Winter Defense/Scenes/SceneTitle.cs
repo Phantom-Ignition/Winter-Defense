@@ -9,6 +9,7 @@ using Winter_Defense.Managers;
 using MonoGame.Extended.ViewportAdapters;
 using Winter_Defense.Extensions;
 using MonoGame.Extended.BitmapFonts;
+using Microsoft.Xna.Framework.Input;
 
 namespace Winter_Defense.Scenes
 {
@@ -21,18 +22,13 @@ namespace Winter_Defense.Scenes
         private Texture2D _gameTitleTexture;
 
         //--------------------------------------------------
-        // Font
-
-        private BitmapFont _gameFont;
-
-        //--------------------------------------------------
         // Positions
 
         private Vector2 _titlePosition;
         private float _titlePositionFloat;
 
         private Vector2 _pressAnyKeyPosition;
-        private const string PressAnyKeyText = "Press Any Key";
+        private const string PressAnyKeyText = "Press Start";
         private float _pressAnyKeyAlpha;
         private float _pressAnyKeyTick;
 
@@ -45,10 +41,8 @@ namespace Winter_Defense.Scenes
             _backgroundTexture = ImageManager.loadScene("sceneTitle", "Background");
             _gameTitleTexture = ImageManager.loadScene("sceneTitle", "GameTitle");
 
-            _gameFont = Content.Load<BitmapFont>("fonts/SneakAttack");
-
             _titlePosition = new Vector2(213 - _gameTitleTexture.Width / 2, 58);
-            _pressAnyKeyPosition = new Vector2(213 - _gameFont.MeasureString(PressAnyKeyText).Width / 2, 180);
+            _pressAnyKeyPosition = new Vector2(213 - SceneManager.Instance.GameFont.MeasureString(PressAnyKeyText).Width / 2, 180);
         }
 
         public override void Update(GameTime gameTime)
@@ -74,8 +68,9 @@ namespace Winter_Defense.Scenes
 
         private void UpdateInput()
         {
-            if (InputManager.Instace.CurrentKeyState.GetPressedKeys().Length > 0)
+            if (InputManager.Instace.KeyPressed(Keys.Enter))
             {
+                SoundManager.PlayConfirmSe();
                 SceneManager.Instance.ChangeScene("SceneMap");
             }
         }
@@ -87,7 +82,7 @@ namespace Winter_Defense.Scenes
             spriteBatch.Begin(transformMatrix: viewportAdapter.GetScaleMatrix(), samplerState: SamplerState.PointClamp);
             spriteBatch.Draw(_backgroundTexture, Vector2.Zero, Color.White);
             spriteBatch.Draw(_gameTitleTexture, _titlePosition + _titlePositionFloat * Vector2.UnitY, Color.White);
-            spriteBatch.DrawString(_gameFont, PressAnyKeyText, _pressAnyKeyPosition, Color.White * _pressAnyKeyAlpha);
+            spriteBatch.DrawString(SceneManager.Instance.GameFont, PressAnyKeyText, _pressAnyKeyPosition, Color.White * _pressAnyKeyAlpha);
             spriteBatch.End();
         }
     }

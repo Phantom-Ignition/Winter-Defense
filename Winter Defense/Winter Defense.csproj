@@ -52,6 +52,7 @@
     <Compile Include="Managers\InputManager.cs" />
     <Compile Include="Managers\MapManager.cs" />
     <Compile Include="Managers\SceneManager.cs" />
+    <Compile Include="Managers\SoundManager.cs" />
     <Compile Include="Objects\GameCrystal.cs" />
     <Compile Include="Objects\GameHud.cs" />
     <Compile Include="Objects\GameProjectile.cs" />

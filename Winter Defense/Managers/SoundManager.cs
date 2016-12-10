@@ -15,8 +15,8 @@ namespace Winter_Defense.Managers
         public enum BGMType
         {
             None,
-            NonMap,
-            Map
+            Default,
+            Gameover
         }
 
         private static BGMType _bgmType;
@@ -30,15 +30,13 @@ namespace Winter_Defense.Managers
         //--------------------------------------------------
         // SEs
 
-        private static SoundEffect _cancelSe;
         private static SoundEffect _confirmSe;
-        private static SoundEffect _selectSe;
 
         //--------------------------------------------------
         // BGMs
 
-        private static Song _nonMapSong;
-        private static Song _mapSong;
+        private static Song _defaultSong;
+        private static Song _gameoverSong;
 
         //--------------------------------------------------
         // For debug purposes
@@ -50,8 +48,8 @@ namespace Winter_Defense.Managers
         public static void Initialize()
         {
             _confirmSe = LoadSe("Confirm");
-            //_nonMapSong = LoadBgm("AchaidhCheide");
-            //_mapSong = LoadBgm("AngevinB");
+            _defaultSong = LoadBgm("TheLift");
+            _gameoverSong = LoadBgm("Ossuary6Air");
             MediaPlayer.IsRepeating = true;
         }
 
@@ -81,17 +79,17 @@ namespace Winter_Defense.Managers
         {
             if (_soundOn)
             {
-                if (bgmType == BGMType.NonMap && _bgmType != BGMType.NonMap)
+                if (bgmType == BGMType.Default && _bgmType != BGMType.Default)
                 {
                     MediaPlayer.Stop();
-                    MediaPlayer.Play(_nonMapSong);
-                    _bgmType = BGMType.NonMap;
+                    MediaPlayer.Play(_defaultSong);
+                    _bgmType = BGMType.Default;
                 }
-                else if (bgmType == BGMType.Map && _bgmType != BGMType.Map)
+                else if (bgmType == BGMType.Gameover && _bgmType != BGMType.Gameover)
                 {
                     MediaPlayer.Stop();
-                    MediaPlayer.Play(_mapSong);
-                    _bgmType = BGMType.Map;
+                    MediaPlayer.Play(_gameoverSong);
+                    _bgmType = BGMType.Gameover;
                 }
                 MediaPlayer.Volume = 1.0f;
             }

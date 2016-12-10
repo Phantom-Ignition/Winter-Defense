@@ -33,6 +33,7 @@ namespace Winter_Defense.Characters
         //--------------------------------------------------
         // Ground impact
 
+        private bool _enableGroundImpact;
         private bool _groundImpact;
 
         //--------------------------------------------------
@@ -172,10 +173,10 @@ namespace Winter_Defense.Characters
             _shotSei.Volume = 0.7f;
             var footstepSe = SoundManager.LoadSe("Footstep");
             _footstepSei = footstepSe.CreateInstance();
-            _footstepSei.Volume = 0.7f;
+            _footstepSei.Volume = 0.8f;
             var vacuumSe = SoundManager.LoadSe("Vacuum");
             _vacuumSei = vacuumSe.CreateInstance();
-            _vacuumSei.Volume = 0.5f;
+            _vacuumSei.Volume = 0.4f;
         }
 
         private void SetupBottomSprite(Texture2D texture)
@@ -406,9 +407,15 @@ namespace Winter_Defense.Characters
             UpdateBottomSprite(gameTime);
             if (_isOnGround && !isOnGroundBefore && !_groundImpact)
             {
-                _groundImpact = true;
-                TriggerGroundImpactParticles();
-                _footstepTick = 0.0f;
+                if (_enableGroundImpact)
+                {
+                    _groundImpact = true;
+                    TriggerGroundImpactParticles();
+                    _footstepTick = 0.0f;
+                    _footstepSei.Stop();
+                    _footstepSei.Play();
+                }
+                _enableGroundImpact = true;
             }
             if (_groundImpact && CharacterSprite.Looped)
             {
@@ -571,6 +578,7 @@ namespace Winter_Defense.Characters
             {
                 if (_footstepTick >= _footstepCooldown)
                 {
+                    _footstepSei.Stop();
                     _footstepSei.PlaySafe();
                     _footstepCooldown = _rand.NextSingle(280.0f, 370.0f);
                     _footstepTick = 0.0f;

@@ -24,14 +24,17 @@ namespace Winter_Defense.Scenes
             base.LoadContent();
 
             _backgroundTexture = ImageManager.loadScene("sceneGameover", "Background");
+
+            SoundManager.StartBgm(SoundManager.BGMType.Gameover);
         }
 
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
 
-            if (InputManager.Instace.CurrentKeyState.GetPressedKeys().Length > 0)
+            if (!SceneManager.Instance.IsTransitioning && InputManager.Instace.CurrentKeyState.GetPressedKeys().Length > 0)
             {
+                SoundManager.PlayConfirmSe();
                 SceneManager.Instance.ChangeScene("SceneTitle");
             }
         }

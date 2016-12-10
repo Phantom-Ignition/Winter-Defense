@@ -43,6 +43,8 @@ namespace Winter_Defense.Scenes
 
             _titlePosition = new Vector2(213 - _gameTitleTexture.Width / 2, 58);
             _pressAnyKeyPosition = new Vector2(213 - SceneManager.Instance.GameFont.MeasureString(PressAnyKeyText).Width / 2, 180);
+
+            SoundManager.StartBgm(SoundManager.BGMType.Default);
         }
 
         public override void Update(GameTime gameTime)

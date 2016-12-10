@@ -275,3 +275,15 @@
 /processorParam:Quality=Best
 /build:sounds/se/Footstep.ogg
 
+#begin sounds/bgm/Ossuary6Air.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:sounds/bgm/Ossuary6Air.mp3
+
+#begin sounds/bgm/TheLift.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:sounds/bgm/TheLift.mp3
+

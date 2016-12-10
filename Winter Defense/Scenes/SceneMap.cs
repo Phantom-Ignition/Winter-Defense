@@ -168,6 +168,8 @@ namespace Winter_Defense.Scenes
             _ambienceSei = ambienceSe.CreateInstance();
             _ambienceSei.IsLooped = true;
             _ambienceSei.Play();
+
+            SoundManager.StartBgm(SoundManager.BGMType.Default);
         }
 
         private void ParticlesInit(TextureRegion2D textureRegion)

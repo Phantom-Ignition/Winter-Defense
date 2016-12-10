@@ -112,7 +112,10 @@ namespace Winter_Defense.Managers
         public static void PlaySafe(this SoundEffectInstance seInstance)
         {
             if (_soundOn)
+            {
+                seInstance?.Stop();
                 seInstance?.Play();
+            }
         }
 
         public static void PlayConfirmSe()

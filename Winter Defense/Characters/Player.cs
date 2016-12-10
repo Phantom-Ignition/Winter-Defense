@@ -412,7 +412,6 @@ namespace Winter_Defense.Characters
                     _groundImpact = true;
                     TriggerGroundImpactParticles();
                     _footstepTick = 0.0f;
-                    _footstepSei.Stop();
                     _footstepSei.Play();
                 }
                 _enableGroundImpact = true;
@@ -561,7 +560,6 @@ namespace Winter_Defense.Characters
                     _recharged = true;
                     var newAmmo = _ammo + 3;
                     _ammo = MathHelper.Clamp(newAmmo, 0, MaxAmmo);
-                    _vacuumSei.Stop();
                     _vacuumSei.PlaySafe();
                 }
             }
@@ -578,7 +576,6 @@ namespace Winter_Defense.Characters
             {
                 if (_footstepTick >= _footstepCooldown)
                 {
-                    _footstepSei.Stop();
                     _footstepSei.PlaySafe();
                     _footstepCooldown = _rand.NextSingle(280.0f, 370.0f);
                     _footstepTick = 0.0f;
@@ -617,7 +614,6 @@ namespace Winter_Defense.Characters
             TriggerShotParticles(new Vector2(sign, 0), particlePosition);
             _knockbackAcceleration = 3800.0f * -sign;
             ((SceneMap)SceneManager.Instance.GetCurrentScene()).CreateProjectile("snowball", position, dx, 0, damage, ProjectileSubject.FromPlayer);
-            _shotSei.Stop();
             _shotSei.PlaySafe();
         }
 

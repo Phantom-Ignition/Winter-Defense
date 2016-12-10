@@ -115,9 +115,7 @@ namespace Winter_Defense.Managers
         {
             if (_isTransitioning)
                 UpdateTransition(gameTime);
-            else if (InputManager.Instace.KeyPressed(Keys.F2))
-                DebugMode = !DebugMode;
-
+            
             _currentScene.Update(gameTime);
         }
 

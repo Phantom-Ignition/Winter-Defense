@@ -68,7 +68,7 @@ namespace Winter_Defense.Scenes
 
         private void UpdateInput()
         {
-            if (InputManager.Instace.KeyPressed(Keys.Enter))
+            if (InputManager.Instace.KeyPressed(Keys.Enter, Keys.Space))
             {
                 SoundManager.PlayConfirmSe();
                 SceneManager.Instance.ChangeScene("SceneMap");

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using MonoGame.Extended.Particles;
@@ -51,6 +52,11 @@ namespace Winter_Defense.Characters
         private const float ExplodingEraseMaxInterval = 1500.0f;
         private ParticleEffect _explosionParticleEffect;
 
+        //--------------------------------------------------
+        // Sound Effects
+
+        private SoundEffect _hitSe;
+
         //----------------------//------------------------//
 
         public EnemyBase(Texture2D texture) : base(texture)
@@ -63,6 +69,9 @@ namespace Winter_Defense.Characters
             var particleTexture = new Texture2D(SceneManager.Instance.GraphicsDevice, 1, 1);
             particleTexture.SetData(new[] { Color.White });
             ParticlesInit(new TextureRegion2D(particleTexture));
+
+            // Hit SE
+            _hitSe = SoundManager.LoadSe("Hit");
         }
 
         private void ParticlesInit(TextureRegion2D textureRegion)
@@ -106,6 +115,12 @@ namespace Winter_Defense.Characters
             _active = false;
             _explosionParticleEffect.Trigger(BoundingRectangle.Center.ToVector2());
             CharacterSprite.Alpha = 0.0f;
+        }
+
+        public override void ReceiveAttack(int damage, Vector2 subjectPosition)
+        {
+            base.ReceiveAttack(damage, subjectPosition);
+            _hitSe.PlaySafe();
         }
 
         public override void Update(GameTime gameTime)

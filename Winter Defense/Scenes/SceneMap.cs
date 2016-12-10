@@ -16,6 +16,7 @@ using MonoGame.Extended.Particles.Modifiers;
 using Winter_Defense.Particles;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.BitmapFonts;
+using Microsoft.Xna.Framework.Audio;
 
 namespace Winter_Defense.Scenes
 {
@@ -95,6 +96,11 @@ namespace Winter_Defense.Scenes
         private Vector2 _waveClearPosition;
         private float _waveClearAlpha;
 
+        //--------------------------------------------------
+        // Sound Effect
+
+        private SoundEffectInstance _ambienceSei;
+
         //----------------------//------------------------//
 
         public override void LoadContent()
@@ -156,6 +162,12 @@ namespace Winter_Defense.Scenes
             var x = (viewportSize.X - textWidth) / 2;
             _waveClearInitialPosition = new Vector2(x, viewportSize.Y / 2 - 70);
             _waveClearPosition = _waveClearInitialPosition;
+
+            // SE init
+            var ambienceSe = SoundManager.LoadSe("Ambience");
+            _ambienceSei = ambienceSe.CreateInstance();
+            _ambienceSei.IsLooped = true;
+            _ambienceSei.Play();
         }
 
         private void ParticlesInit(TextureRegion2D textureRegion)
@@ -264,6 +276,8 @@ namespace Winter_Defense.Scenes
             _crystal.Update(gameTime);
             if (_crystal.RequestErase)
             {
+                _ambienceSei.Stop();
+                _ambienceSei.Dispose();
                 SceneManager.Instance.ChangeScene("SceneGameover");
             }
         }

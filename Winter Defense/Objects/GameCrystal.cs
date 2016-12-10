@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using Winter_Defense.Extensions;
 using Winter_Defense.Managers;
 
@@ -22,7 +23,8 @@ namespace Winter_Defense.Objects
         //--------------------------------------------------
         // Frames
 
-        private Rectangle _domeBackFrame;
+        private Rectangle[] _domeBackFrames;
+        private int[] _domeLivesIndex;
         private Rectangle _domeFrontFrame;
         private Rectangle _crystalFrame;
 
@@ -77,7 +79,14 @@ namespace Winter_Defense.Objects
             _texture = texture;
             _alpha = 1.0f;
 
-            _domeBackFrame = new Rectangle(0, 0, 96, 128);
+            _domeBackFrames = new Rectangle[]
+            {
+                new Rectangle(0, 0, 96, 128),
+                new Rectangle(0, 128, 96, 128),
+                new Rectangle(96, 128, 96, 128),
+                new Rectangle(192, 128, 96, 128),
+            };
+            _domeLivesIndex = new int[] { 0, 1, 1, 2, 3, 3 };
             _domeFrontFrame = new Rectangle(192, 0, 96, 128);
             _crystalFrame = new Rectangle(96, 0, 96, 128);
 
@@ -94,15 +103,15 @@ namespace Winter_Defense.Objects
 
         public void Update(GameTime gameTime)
         {
-            var deltaTime = (float)gameTime.TotalGameTime.TotalMilliseconds / 20;
-            _crystalPosition.Y = (int)MathUtils.SinInterpolation(_position.Y - 3, _position.Y + 5, deltaTime);
-
             if (_dying)
             {
                 _alpha -= (float)gameTime.ElapsedGameTime.TotalSeconds / 3;
                 _requestErase = _alpha <= 0.0f;
                 return;
             }
+
+            var deltaTime = (float)gameTime.TotalGameTime.TotalMilliseconds / 20;
+            _crystalPosition.Y = (int)MathUtils.SinInterpolation(_position.Y - 3, _position.Y + 5, deltaTime);
 
             UpdateImmunityAnimation(gameTime);
         }
@@ -143,8 +152,9 @@ namespace Winter_Defense.Objects
         #region Draw
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(_texture, _position, _domeBackFrame, Color.White * _alpha);
+            var domeFrame = _domeBackFrames[_domeLivesIndex[Math.Max(5 - _lives, 0)]];
             spriteBatch.Draw(_texture, _crystalPosition, _crystalFrame, Color.White * _alpha);
+            spriteBatch.Draw(_texture, _position, domeFrame, Color.White * _alpha);
             spriteBatch.Draw(_texture, _position, _domeFrontFrame, Color.White * _alpha);
         }
 

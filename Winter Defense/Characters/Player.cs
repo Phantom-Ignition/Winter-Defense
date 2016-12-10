@@ -69,7 +69,7 @@ namespace Winter_Defense.Characters
         // Sound Effect
 
         private SoundEffect _shotSe;
-        private SoundEffect _footstepSe;
+        private SoundEffectInstance _footstepSei;
         private SoundEffect _vacuumSe;
 
         private float _footstepCooldown;
@@ -168,7 +168,9 @@ namespace Winter_Defense.Characters
 
             // SEs init
             _shotSe = SoundManager.LoadSe("Shot");
-            _footstepSe = SoundManager.LoadSe("Step");
+            var footstepSe = SoundManager.LoadSe("Footstep");
+            _footstepSei = footstepSe.CreateInstance();
+            _footstepSei.Volume = 0.7f;
             _vacuumSe = SoundManager.LoadSe("Vacuum");
         }
 
@@ -402,7 +404,6 @@ namespace Winter_Defense.Characters
             {
                 _groundImpact = true;
                 TriggerGroundImpactParticles();
-                _footstepSe.PlaySafe();
                 _footstepTick = 0.0f;
             }
             if (_groundImpact && CharacterSprite.Looped)
@@ -560,13 +561,13 @@ namespace Winter_Defense.Characters
 
         private void UpdateFootsteps(GameTime gameTime)
         {
+            _footstepTick += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
             if (_movement != 0 && _isOnGround)
             {
-                _footstepTick += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
                 if (_footstepTick >= _footstepCooldown)
                 {
-                    _footstepSe.PlaySafe();
-                    _footstepCooldown = _rand.NextSingle(250.0f, 320.0f);
+                    _footstepSei.PlaySafe();
+                    _footstepCooldown = _rand.NextSingle(280.0f, 370.0f);
                     _footstepTick = 0.0f;
                 }
             }

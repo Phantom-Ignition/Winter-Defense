@@ -68,9 +68,9 @@ namespace Winter_Defense.Characters
         //--------------------------------------------------
         // Sound Effect
 
-        private SoundEffect _shotSe;
+        private SoundEffectInstance _shotSei;
         private SoundEffectInstance _footstepSei;
-        private SoundEffect _vacuumSe;
+        private SoundEffectInstance _vacuumSei;
 
         private float _footstepCooldown;
         private float _footstepTick;
@@ -167,11 +167,15 @@ namespace Winter_Defense.Characters
             ParticlesInit(new TextureRegion2D(particleTexture));
 
             // SEs init
-            _shotSe = SoundManager.LoadSe("Shot");
+            var shotSe = SoundManager.LoadSe("Shot");
+            _shotSei = shotSe.CreateInstance();
+            _shotSei.Volume = 0.7f;
             var footstepSe = SoundManager.LoadSe("Footstep");
             _footstepSei = footstepSe.CreateInstance();
             _footstepSei.Volume = 0.7f;
-            _vacuumSe = SoundManager.LoadSe("Vacuum");
+            var vacuumSe = SoundManager.LoadSe("Vacuum");
+            _vacuumSei = vacuumSe.CreateInstance();
+            _vacuumSei.Volume = 0.5f;
         }
 
         private void SetupBottomSprite(Texture2D texture)
@@ -550,7 +554,8 @@ namespace Winter_Defense.Characters
                     _recharged = true;
                     var newAmmo = _ammo + 3;
                     _ammo = MathHelper.Clamp(newAmmo, 0, MaxAmmo);
-                    _vacuumSe.PlaySafe();
+                    _vacuumSei.Stop();
+                    _vacuumSei.PlaySafe();
                 }
             }
             if (_recharging && CharacterSprite.CurrentFrame == 0)
@@ -604,7 +609,8 @@ namespace Winter_Defense.Characters
             TriggerShotParticles(new Vector2(sign, 0), particlePosition);
             _knockbackAcceleration = 3800.0f * -sign;
             ((SceneMap)SceneManager.Instance.GetCurrentScene()).CreateProjectile("snowball", position, dx, 0, damage, ProjectileSubject.FromPlayer);
-            _shotSe.PlaySafe();
+            _shotSei.Stop();
+            _shotSei.PlaySafe();
         }
 
         private void TriggerShotParticles(Vector2 direction, Vector2 position)

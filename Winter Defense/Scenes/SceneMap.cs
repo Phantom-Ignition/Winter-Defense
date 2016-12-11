@@ -47,11 +47,7 @@ namespace Winter_Defense.Scenes
         //--------------------------------------------------
         // Enemies
 
-        private List<EnemyBase> _enemies;
-        private Dictionary<EnemyType, string> _enemiesNames;
-
-        private Texture2D _birdTexture;
-        private Texture2D _ghostTexture;
+        private List<EnemyBase> _enemies;        
         private Ghost _ghost;
         private Bird _bird;
 
@@ -131,15 +127,10 @@ namespace Winter_Defense.Scenes
 
             // Enemies init
             _enemies = new List<EnemyBase>();
-            _enemiesNames = new Dictionary<EnemyType, string>
-            {
-                { EnemyType.Ghost, "Ghost" },
-                { EnemyType.Bird, "Bird" }
-            };
-            _ghostTexture = ImageManager.loadCharacter("Ghost");
-            _birdTexture = ImageManager.loadCharacter("Bird");
-            _ghost = new Ghost(_ghostTexture);
-            _bird = new Bird(_birdTexture);
+            var ghostTexture = ImageManager.loadCharacter("Ghost");
+            var birdTexture = ImageManager.loadCharacter("Bird");
+            _ghost = new Ghost(ghostTexture);
+            _bird = new Bird(birdTexture);
 
             // Background init
             _backgroundTexture = ImageManager.loadScene("sceneMap", "Background");
@@ -327,8 +318,6 @@ namespace Winter_Defense.Scenes
             while (_enemiesSpawnManager.Queue.Count > 0)
             {
                 var model = _enemiesSpawnManager.ShiftModelFromQueue();
-                var enemyName = _enemiesNames[model.Type];
-                var texture = ImageManager.loadCharacter(enemyName);
                 EnemyBase enemy = _ghost.Clone<Ghost>();
                 if (model.Type == EnemyType.Bird) enemy = _bird.Clone<Bird>();
                 var halfTile = MapManager.Instance.TileSize.X / 2;

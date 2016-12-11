@@ -229,5 +229,15 @@ namespace Winter_Defense.Characters
         }
 
         #endregion
+
+
+
+        public T Clone<T>() where T : CharacterBase
+        {
+            var characterSprite = CharacterSprite.Clone();
+            var clone = (T)MemberwiseClone();
+            clone.CharacterSprite = characterSprite;
+            return clone;
+        }
     }
 }

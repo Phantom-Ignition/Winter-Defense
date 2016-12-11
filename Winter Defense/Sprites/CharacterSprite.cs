@@ -360,5 +360,10 @@ namespace Winter_Defense.Sprites
             spriteBatch.Draw(TextureRegion.Texture, roundedPosition, GetCurrentFrameRectangle(),
                 Color * Alpha, Rotation, Origin, Scale, Effect, 0);
         }
+
+        public CharacterSprite Clone()
+        {
+            return (CharacterSprite)MemberwiseClone();
+        }
     }
 }

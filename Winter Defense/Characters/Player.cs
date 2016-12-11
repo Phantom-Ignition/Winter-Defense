@@ -273,7 +273,7 @@ namespace Winter_Defense.Characters
                             new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 90f },
                             new RotationModifier { RotationRate = 1f },
                             new OpacityFastFadeModifier(),
-                            new MapContainerModifier { RestitutionCoefficient = 0.3f }
+                            new MapContainerModifier { RestitutionCoefficient = 0.6f }
                         }
                     }
                 }
@@ -298,7 +298,7 @@ namespace Winter_Defense.Characters
                             new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 10f },
                             new RotationModifier { RotationRate = 0.5f },
                             new OpacityFastFadeModifier(),
-                            new MapContainerModifier { RestitutionCoefficient = 0.3f }
+                            new MapContainerModifier { RestitutionCoefficient = 0.6f }
                         }
                     }
                 }
@@ -321,8 +321,8 @@ namespace Winter_Defense.Characters
                         Modifiers = new IModifier[]
                         {
                             new LinearGravityModifier { Direction = -Vector2.One, Strength = 200f },
-                            new MapContainerModifier { RestitutionCoefficient = 0.3f },
-                            new OpacityFastFadeModifier()
+                            new OpacityFastFadeModifier(),
+                            new MapContainerModifier { RestitutionCoefficient = 0.6f }
                         }
                     }
                 }
@@ -344,8 +344,8 @@ namespace Winter_Defense.Characters
                         Modifiers = new IModifier[]
                         {
                             new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 70f },
-                            new MapContainerModifier { RestitutionCoefficient = 0.3f },
-                            new OpacityFastFadeModifier()
+                            new OpacityFastFadeModifier(),
+                            new MapContainerModifier { RestitutionCoefficient = 0.6f }
                         }
                     }
                 }
@@ -369,8 +369,8 @@ namespace Winter_Defense.Characters
                         {
                             new LinearGravityModifier { Direction = Vector2.Zero, Strength = 100.0f },
                             new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 70.0f },
-                            new MapContainerModifier { RestitutionCoefficient = 0.3f },
-                            new OpacityFastFadeModifier()
+                            new OpacityFastFadeModifier(),
+                            new MapContainerModifier { RestitutionCoefficient = 0.6f }
                         }
                     }
                 }
@@ -555,7 +555,7 @@ namespace Winter_Defense.Characters
                 {
                     TriggerRechargingParticles();
                 }
-                else if (CharacterSprite.CurrentFrame == 2 && !_recharged)
+                else if (CharacterSprite.CurrentFrameList == "recharging" && CharacterSprite.CurrentFrame == 2 && !_recharged)
                 {
                     _recharged = true;
                     var newAmmo = _ammo + 3;

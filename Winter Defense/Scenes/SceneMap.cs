@@ -50,6 +50,11 @@ namespace Winter_Defense.Scenes
         private List<EnemyBase> _enemies;
         private Dictionary<EnemyType, string> _enemiesNames;
 
+        private Texture2D _birdTexture;
+        private Texture2D _ghostTexture;
+        private Ghost _ghost;
+        private Bird _bird;
+
         //--------------------------------------------------
         // Crystal
 
@@ -131,6 +136,10 @@ namespace Winter_Defense.Scenes
                 { EnemyType.Ghost, "Ghost" },
                 { EnemyType.Bird, "Bird" }
             };
+            _ghostTexture = ImageManager.loadCharacter("Ghost");
+            _birdTexture = ImageManager.loadCharacter("Bird");
+            _ghost = new Ghost(_ghostTexture);
+            _bird = new Bird(_birdTexture);
 
             // Background init
             _backgroundTexture = ImageManager.loadScene("sceneMap", "Background");
@@ -216,9 +225,9 @@ namespace Winter_Defense.Scenes
                         Modifiers = new IModifier[]
                         {
                             new LinearGravityModifier { Direction = Vector2.UnitY, Strength = 150f },
-                            new MapContainerModifier { RestitutionCoefficient = 0.2f },
                             new RotationModifier { RotationRate = 2.0f },
-                            new OpacityFastFadeModifier()
+                            new OpacityFastFadeModifier(),
+                            new MapContainerModifier { RestitutionCoefficient = 0.6f }
                         }
                     }
                 }
@@ -320,7 +329,8 @@ namespace Winter_Defense.Scenes
                 var model = _enemiesSpawnManager.ShiftModelFromQueue();
                 var enemyName = _enemiesNames[model.Type];
                 var texture = ImageManager.loadCharacter(enemyName);
-                var enemy = (EnemyBase)Activator.CreateInstance(Type.GetType("Winter_Defense.Characters." + enemyName), texture);
+                EnemyBase enemy = _ghost.Clone<Ghost>();
+                if (model.Type == EnemyType.Bird) enemy = _bird.Clone<Bird>();
                 var halfTile = MapManager.Instance.TileSize.X / 2;
                 var x = model.Side == 0 ? halfTile : MapManager.Instance.MapWidth - halfTile;
                 var y = MapManager.Instance.MapHeight - MapManager.Instance.TileSize.Y;
@@ -347,7 +357,7 @@ namespace Winter_Defense.Scenes
                         }
                     }
 
-                    if (enemy.BoundingRectangle.Intersects(_crystal.BoudingBox))
+                    if (!enemy.Dying && enemy.BoundingRectangle.Intersects(_crystal.BoudingBox))
                     {
                         _crystal.OnDamage();
                         enemy.OnAttack();

@@ -31,4 +31,4 @@ MonoGame.Extended (latest build)
 
 v1.0.0: https://github.com/Phantom-Ignition/Winter-Defense/releases/tag/v1.0.0
 
-Game Jolt: http://gamejolt.com/dashboard/games/217201
+Game Jolt: http://gamejolt.com/games/winter-defense/217201

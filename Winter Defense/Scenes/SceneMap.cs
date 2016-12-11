@@ -418,7 +418,6 @@ namespace Winter_Defense.Scenes
         private void UpdateHud(GameTime gameTime)
         {
             _gameHud.SetData(_crystal.Lives, _player.Ammo, _enemiesSpawnManager.CurrentWave);
-            _gameHud.Update(gameTime);
         }
 
         private void UpdateCamera()

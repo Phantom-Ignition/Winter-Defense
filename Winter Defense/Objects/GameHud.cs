@@ -58,11 +58,6 @@ namespace Winter_Defense.Objects
             _wave = wave;
         }
 
-        public void Update(GameTime gameTime)
-        {
-
-        }
-
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(_backgroundTexture, _backgroundFrame, Color.White);
@@ -82,7 +77,7 @@ namespace Winter_Defense.Objects
             var waveText = (_wave + 1).ToString();
             var textSize = SceneManager.Instance.GameFont.MeasureString(waveText);
             var wavePosition = new Vector2(textSize.Width / 2, textSize.Height / 2);
-            spriteBatch.DrawString(SceneManager.Instance.GameFont, _wave.ToString(), _wavePosition - wavePosition, Color.White);
+            spriteBatch.DrawString(SceneManager.Instance.GameFont, waveText, _wavePosition - wavePosition, Color.White);
         }
     }
 }

@@ -37,12 +37,6 @@
 /processorParam:TextureFormat=Color
 /build:imgs/characters/Player.png
 
-#begin loop_bg.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:loop_bg.wav
-
 #begin imgs/projectiles/Snowball.png
 /importer:TextureImporter
 /processor:TextureProcessor

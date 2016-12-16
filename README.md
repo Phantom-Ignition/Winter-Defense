@@ -5,12 +5,9 @@ In this game you control a penguin that must save the winter crystal, which is b
 
 # Controls
 
-Arrow: Movement
-
-C: Jump
-
-Z: Shot
-
+Arrow: Movement  
+C: Jump  
+Z: Shot  
 X: Recharge
 
 # Media
